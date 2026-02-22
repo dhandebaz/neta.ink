@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
   const [state] = await db
     .select()
     .from(states)
-    .where(eq(states.code, user.state_code))
+    .where(eq(states.code, currentUser.state_code))
     .limit(1);
 
   const stateName = state?.name ?? "Delhi";

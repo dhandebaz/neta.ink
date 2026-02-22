@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import type { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
@@ -76,12 +77,11 @@ export async function getCurrentUser() {
   return user;
 }
 
-export async function setUserSession(userId: number) {
+export function setUserSession(res: NextResponse, userId: number) {
   const token = signUserId(userId);
-  const cookieStore = cookies();
   const isProd = process.env.NODE_ENV === "production";
 
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
+  res.cookies.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: isProd,
     sameSite: "lax",
@@ -90,9 +90,8 @@ export async function setUserSession(userId: number) {
   });
 }
 
-export async function clearUserSession() {
-  const cookieStore = cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, "", {
+export function clearUserSession(res: NextResponse) {
+  res.cookies.set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

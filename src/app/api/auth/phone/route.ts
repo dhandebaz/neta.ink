@@ -75,9 +75,7 @@ export async function POST(req: NextRequest) {
     user = created;
   }
 
-  await setUserSession(user.id);
-
-  return NextResponse.json({
+  const res = NextResponse.json({
     success: true,
     data: {
       id: user.id,
@@ -86,5 +84,8 @@ export async function POST(req: NextRequest) {
       is_system_admin: user.is_system_admin
     }
   });
-}
 
+  setUserSession(res, user.id);
+
+  return res;
+}
