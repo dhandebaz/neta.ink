@@ -1,0 +1,40 @@
+name: Database migrations (Drizzle → Neon)
+
+# Set NEON_DATABASE_URL GitHub secret to the same value as the Vercel
+# DATABASE_URL used in production. The workflow exports this secret as
+# DATABASE_URL for Drizzle CLI to connect to Neon.
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  db-migrate:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Drizzle migrations
+        run: npm run db:generate
+
+      - name: Push Drizzle migrations to Neon
+        run: npm run db:push
+
+# NOTE: Protect the main branch in GitHub so that PRs can only be merged
+# when this workflow (db-migrate) completes successfully.
+

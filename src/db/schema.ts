@@ -195,6 +195,18 @@ export const task_usage = pgTable("task_usage", {
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const usage_events = pgTable("usage_events", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").references(() => users.id),
+  task_type: text("task_type").notNull(),
+  state_code: text("state_code"),
+  endpoint: text("endpoint").notNull(),
+  success: boolean("success").notNull(),
+  status_code: integer("status_code").notNull(),
+  error_code: text("error_code"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const system_settings = pgTable("system_settings", {
   id: serial("id").primaryKey(),
   key: text("key").notNull().unique(),
@@ -356,6 +368,9 @@ export type NewPayment = InferInsertModel<typeof payments>;
 
 export type TaskUsage = InferSelectModel<typeof task_usage>;
 export type NewTaskUsage = InferInsertModel<typeof task_usage>;
+
+export type UsageEvent = InferSelectModel<typeof usage_events>;
+export type NewUsageEvent = InferInsertModel<typeof usage_events>;
 
 export type SystemSetting = InferSelectModel<typeof system_settings>;
 export type NewSystemSetting = InferInsertModel<typeof system_settings>;

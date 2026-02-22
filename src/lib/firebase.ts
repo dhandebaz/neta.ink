@@ -8,11 +8,14 @@ const config = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-if (!config.apiKey || !config.projectId || !config.appId) {
-  throw new Error("Firebase client configuration is not fully set");
-}
+export const hasFirebaseConfig =
+  !!config.apiKey && !!config.projectId && !!config.appId;
 
 function createFirebaseApp(): FirebaseApp {
+  if (!hasFirebaseConfig) {
+    throw new Error("Firebase client configuration is not fully set");
+  }
+
   if (getApps().length) {
     return getApp();
   }
@@ -20,7 +23,10 @@ function createFirebaseApp(): FirebaseApp {
   return initializeApp(config);
 }
 
-export const app: FirebaseApp = createFirebaseApp();
+export const app: FirebaseApp = hasFirebaseConfig
+  ? createFirebaseApp()
+  : (null as unknown as FirebaseApp);
 
-export const auth: Auth = getAuth(app);
-
+export const auth: Auth = hasFirebaseConfig
+  ? getAuth(app)
+  : (null as unknown as Auth);
