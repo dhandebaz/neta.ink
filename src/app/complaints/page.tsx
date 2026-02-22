@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import { db } from "@/db/client";
-import { complaints, constituencies, politicians, states } from "@/db/schema";
-import { and, desc, eq } from "drizzle-orm";
 import { ComplaintClient } from "./ComplaintClient";
 import { getFeatureFlagBoolean } from "@/lib/states";
 
@@ -30,65 +27,9 @@ type PageProps = {
 
 export default async function ComplaintsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
-  const complaintsEnabledGlobal = await getFeatureFlagBoolean(
-    "complaints_enabled_global",
-    true
-  );
-  const complaintsEnabledDelhi = await getFeatureFlagBoolean(
-    "complaints_enabled_DL",
-    true
-  );
-  const complaintsEnabled = complaintsEnabledGlobal && complaintsEnabledDelhi;
 
-  const [delhi] = await db
-    .select()
-    .from(states)
-    .where(eq(states.code, "DL"))
-    .limit(1);
-
-  let publicComplaints:
-    | {
-        id: number;
-        title: string;
-        photo_url: string;
-        location_text: string;
-        status: string;
-        severity: string;
-        created_at: Date;
-        politician_id: number | null;
-      }[] = [];
-
-  const rawPoliticianId =
-    typeof params.politicianId === "string" ? params.politicianId : undefined;
-
-  const parsedPoliticianId = rawPoliticianId ? Number(rawPoliticianId) : NaN;
-  const politicianId =
-    Number.isFinite(parsedPoliticianId) && parsedPoliticianId > 0
-      ? parsedPoliticianId
-      : undefined;
-
-  if (delhi) {
-    publicComplaints = await db
-      .select({
-        id: complaints.id,
-        title: complaints.title,
-        photo_url: complaints.photo_url,
-        location_text: complaints.location_text,
-        status: complaints.status,
-        severity: complaints.severity,
-        created_at: complaints.created_at,
-        politician_id: complaints.politician_id,
-        politician_name: politicians.name
-      })
-      .from(complaints)
-      .leftJoin(politicians, eq(complaints.politician_id, politicians.id))
-      .where(
-        and(eq(complaints.state_id, delhi.id), eq(complaints.is_public, true))
-      )
-      .orderBy(desc(complaints.created_at))
-      .limit(50);
-  }
-
+  let complaintsEnabled = false;
+  let politicianId: number | undefined;
   let selectedPoliticianSummary:
     | {
         name: string;
@@ -97,48 +38,37 @@ export default async function ComplaintsPage({ searchParams }: PageProps) {
       }
     | undefined;
 
-  if (politicianId) {
-    const [row] = await db
-      .select({
-        id: politicians.id,
-        name: politicians.name,
-        position: politicians.position,
-        constituency_id: politicians.constituency_id
-      })
-      .from(politicians)
-      .where(eq(politicians.id, politicianId))
-      .limit(1);
+  let dataError: string | null = null;
 
-    if (row) {
-      let constituencyName: string | null = null;
+  try {
+    const complaintsEnabledGlobal = await getFeatureFlagBoolean(
+      "complaints_enabled_global",
+      true
+    );
+    const complaintsEnabledDelhi = await getFeatureFlagBoolean(
+      "complaints_enabled_DL",
+      true
+    );
+    complaintsEnabled = complaintsEnabledGlobal && complaintsEnabledDelhi;
 
-      if (row.constituency_id) {
-        const [constituencyRow] = await db
-          .select({
-            id: constituencies.id,
-            name: constituencies.name
-          })
-          .from(constituencies)
-          .where(eq(constituencies.id, row.constituency_id))
-          .limit(1);
+    const rawPoliticianId =
+      typeof params.politicianId === "string" ? params.politicianId : undefined;
 
-        if (constituencyRow) {
-          constituencyName = constituencyRow.name;
-        }
-      }
-
-      selectedPoliticianSummary = {
-        name: row.name,
-        position: row.position,
-        constituencyName
-      };
-    }
+    const parsedPoliticianId = rawPoliticianId ? Number(rawPoliticianId) : NaN;
+    politicianId =
+      Number.isFinite(parsedPoliticianId) && parsedPoliticianId > 0
+        ? parsedPoliticianId
+        : undefined;
+  } catch (error) {
+    console.error("Error loading complaints page data", error);
+    dataError =
+      "Complaints data is temporarily unavailable. Please try again in a bit.";
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-4xl space-y-6">
-        <header className="space-y-2">
+        <header className="space-y-3">
           <h1 className="text-3xl font-semibold text-slate-50 sm:text-4xl">
             Complaints — Delhi (India-wide soon)
           </h1>
@@ -148,7 +78,13 @@ export default async function ComplaintsPage({ searchParams }: PageProps) {
           </p>
         </header>
 
-        {!complaintsEnabled && (
+        {dataError && (
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-100">
+            {dataError}
+          </div>
+        )}
+
+        {!dataError && !complaintsEnabled && (
           <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-100">
             Complaints filing is currently unavailable for Delhi. Existing public complaints remain
             visible below.
@@ -158,7 +94,7 @@ export default async function ComplaintsPage({ searchParams }: PageProps) {
         <ComplaintClient
           politicianId={politicianId}
           politicianSummary={selectedPoliticianSummary}
-          complaintsEnabled={complaintsEnabled}
+          complaintsEnabled={complaintsEnabled && !dataError}
         />
       </div>
     </main>

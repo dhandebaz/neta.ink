@@ -39,46 +39,58 @@ export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${inter.className} bg-slate-950 text-slate-50`}>
-        <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
+        <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/70 backdrop-blur">
           <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 gap-4">
             <div className="flex items-center gap-4">
-              <Link href="/" className="text-lg font-semibold tracking-tight text-slate-50">
-                neta
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 rounded-full bg-slate-900/80 px-3 py-1 text-sm font-semibold tracking-tight text-slate-50 ring-1 ring-slate-700 hover:bg-slate-900"
+              >
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-xs font-bold text-slate-950">
+                  n
+                </span>
+                <span>neta</span>
               </Link>
-              <nav className="hidden items-center gap-3 text-xs sm:flex sm:text-sm">
-                <Link href="/" className="rounded px-2 py-1 text-slate-200 hover:bg-slate-800">
+              <nav className="hidden items-center gap-2 text-xs sm:flex sm:text-sm">
+                <Link
+                  href="/"
+                  className="rounded-full px-3 py-1 text-slate-200 hover:bg-slate-800 hover:text-slate-50"
+                >
                   Home
                 </Link>
                 <Link
                   href="/complaints"
-                  className="rounded px-2 py-1 text-slate-200 hover:bg-slate-800"
+                  className="rounded-full px-3 py-1 text-slate-200 hover:bg-slate-800 hover:text-slate-50"
                 >
                   Complaints
                 </Link>
-                <Link href="/rti" className="rounded px-2 py-1 text-slate-200 hover:bg-slate-800">
+                <Link
+                  href="/rti"
+                  className="rounded-full px-3 py-1 text-slate-200 hover:bg-slate-800 hover:text-slate-50"
+                >
                   RTI
                 </Link>
                 <Link
                   href="/rankings/delhi"
-                  className="rounded px-2 py-1 text-slate-200 hover:bg-slate-800"
+                  className="rounded-full px-3 py-1 text-slate-200 hover:bg-slate-800 hover:text-slate-50"
                 >
                   Rankings
                 </Link>
                 <Link
                   href="/politicians"
-                  className="hidden rounded px-2 py-1 text-slate-200 hover:bg-slate-800 sm:inline-flex"
+                  className="hidden rounded-full px-3 py-1 text-slate-200 hover:bg-slate-800 hover:text-slate-50 sm:inline-flex"
                 >
                   Politicians
                 </Link>
                 <Link
                   href="/about"
-                  className="hidden rounded px-2 py-1 text-slate-200 hover:bg-slate-800 sm:inline-flex"
+                  className="hidden rounded-full px-3 py-1 text-slate-200 hover:bg-slate-800 hover:text-slate-50 sm:inline-flex"
                 >
                   About
                 </Link>
                 <Link
                   href="/faq"
-                  className="hidden rounded px-2 py-1 text-slate-200 hover:bg-slate-800 sm:inline-flex"
+                  className="hidden rounded-full px-3 py-1 text-slate-200 hover:bg-slate-800 hover:text-slate-50 sm:inline-flex"
                 >
                   FAQ
                 </Link>

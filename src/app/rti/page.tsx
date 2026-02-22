@@ -30,19 +30,6 @@ type PageProps = {
 
 export default async function RtiPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
-  const rtiEnabledGlobal = await getFeatureFlagBoolean("rti_enabled_global", true);
-  const rtiEnabledDelhi = await getFeatureFlagBoolean("rti_enabled_DL", true);
-  const rtiEnabled = rtiEnabledGlobal && rtiEnabledDelhi;
-
-  const rawPoliticianId =
-    typeof params.politicianId === "string" ? params.politicianId : undefined;
-
-  const parsedPoliticianId = rawPoliticianId ? Number(rawPoliticianId) : NaN;
-  const politicianId =
-    Number.isFinite(parsedPoliticianId) && parsedPoliticianId > 0
-      ? parsedPoliticianId
-      : undefined;
-
   const rawTargetType =
     typeof params.targetType === "string" ? params.targetType.toUpperCase() : undefined;
 
@@ -51,6 +38,8 @@ export default async function RtiPage({ searchParams }: PageProps) {
     ? (rawTargetType as "MP" | "MLA" | "DEPT")
     : "DEPT";
 
+  let rtiEnabled = false;
+  let politicianId: number | undefined;
   let initialSummary:
     | {
         id: number;
@@ -60,55 +49,83 @@ export default async function RtiPage({ searchParams }: PageProps) {
       }
     | undefined;
 
-  if (politicianId) {
-    const [row] = await db
-      .select({
-        id: politicians.id,
-        name: politicians.name,
-        position: politicians.position,
-        constituency_id: politicians.constituency_id
-      })
-      .from(politicians)
-      .where(eq(politicians.id, politicianId))
-      .limit(1);
+  let dataError: string | null = null;
 
-    if (row) {
-      let constituencyName: string | null = null;
+  try {
+    const rtiEnabledGlobal = await getFeatureFlagBoolean("rti_enabled_global", true);
+    const rtiEnabledDelhi = await getFeatureFlagBoolean("rti_enabled_DL", true);
+    rtiEnabled = rtiEnabledGlobal && rtiEnabledDelhi;
 
-      if (row.constituency_id) {
-        const [constituencyRow] = await db
-          .select({
-            id: constituencies.id,
-            name: constituencies.name
-          })
-          .from(constituencies)
-          .where(eq(constituencies.id, row.constituency_id))
-          .limit(1);
+    const rawPoliticianId =
+      typeof params.politicianId === "string" ? params.politicianId : undefined;
 
-        if (constituencyRow) {
-          constituencyName = constituencyRow.name;
+    const parsedPoliticianId = rawPoliticianId ? Number(rawPoliticianId) : NaN;
+    politicianId =
+      Number.isFinite(parsedPoliticianId) && parsedPoliticianId > 0
+        ? parsedPoliticianId
+        : undefined;
+
+    if (politicianId) {
+      const [row] = await db
+        .select({
+          id: politicians.id,
+          name: politicians.name,
+          position: politicians.position,
+          constituency_id: politicians.constituency_id
+        })
+        .from(politicians)
+        .where(eq(politicians.id, politicianId))
+        .limit(1);
+
+      if (row) {
+        let constituencyName: string | null = null;
+
+        if (row.constituency_id) {
+          const [constituencyRow] = await db
+            .select({
+              id: constituencies.id,
+              name: constituencies.name
+            })
+            .from(constituencies)
+            .where(eq(constituencies.id, row.constituency_id))
+            .limit(1);
+
+          if (constituencyRow) {
+            constituencyName = constituencyRow.name;
+          }
         }
-      }
 
-      initialSummary = {
-        id: row.id,
-        name: row.name,
-        position: row.position,
-        constituencyName
-      };
+        initialSummary = {
+          id: row.id,
+          name: row.name,
+          position: row.position,
+          constituencyName
+        };
+      }
     }
+  } catch (error) {
+    console.error("Error loading RTI page data", error);
+    dataError =
+      "RTI drafting data is temporarily unavailable. Please try again in a bit.";
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-3xl space-y-6">
-        <header className="space-y-2 text-center">
+        <header className="space-y-3 text-center">
           <h1 className="text-3xl font-bold">RTI Drafting (Delhi)</h1>
           <p className="text-sm text-slate-600">
             We help you draft RTI applications for Delhi for ₹11 per RTI. You can review the draft, pay, and then file it yourself on the official RTI portal.
           </p>
         </header>
-        {!rtiEnabled && (
+
+        {dataError && (
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-100">
+            {dataError}
+          </div>
+        )}
+
+        {!dataError && !rtiEnabled && (
           <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-900">
             RTI drafting is currently unavailable for Delhi. Existing RTI history, if any, remains visible below.
           </div>
@@ -130,7 +147,7 @@ export default async function RtiPage({ searchParams }: PageProps) {
                 }
               : undefined
           }
-          rtiEnabled={rtiEnabled}
+          rtiEnabled={rtiEnabled && !dataError}
         />
       </div>
     </main>

@@ -75,79 +75,84 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="space-y-6 pt-4 sm:pt-6">
-        <div className="space-y-3">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-amber-300">
-            India-wide · Phase 1: Delhi
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
-            Hold your neta accountable.
-          </h1>
-          <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
-            neta helps citizens across India file RTIs, document civic complaints, and see how MPs
-            and MLAs rank – starting with Delhi. Designed for mobile, backed by real data and
-            filings.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <a
-            href="#state-search"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-amber-400 px-4 text-sm font-medium text-slate-950 shadow hover:bg-amber-300"
-          >
-            Find your representative
-          </a>
-          <Link
-            href="/complaints"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-slate-100 px-4 text-sm font-medium text-slate-900 hover:bg-slate-200"
-          >
-            File a complaint
-          </Link>
-          <Link
-            href="/rti"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-slate-600 px-4 text-sm font-medium text-slate-100 hover:bg-slate-800"
-          >
-            Draft an RTI
-          </Link>
-        </div>
-
-        <div className="grid gap-3 text-xs text-slate-400 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-            <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-              Delhi live
-            </div>
-            <p className="text-[13px] text-slate-300">
-              RTI drafting, civic complaints, and rankings are wired end-to-end for Delhi.
+      <section className="pt-6 sm:pt-8">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900 px-4 py-6 sm:px-6 sm:py-7">
+          <div className="pointer-events-none absolute -left-24 -top-24 h-48 w-48 rounded-full bg-amber-400/10 blur-3xl" />
+          <div className="pointer-events-none absolute -right-10 bottom-0 h-40 w-40 rounded-full bg-emerald-400/10 blur-3xl" />
+          <div className="relative space-y-5">
+            <p className="inline-flex items-center rounded-full bg-slate-900/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-amber-300 ring-1 ring-amber-400/40">
+              India-wide in design · Live in Delhi
             </p>
-          </div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-            <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-              India-ready
+            <div className="space-y-3">
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
+                Hold your neta accountable.
+              </h1>
+              <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+                File RTIs, turn photos into civic complaints, and see how MPs and MLAs rank. Built
+                for India, wired end-to-end for Delhi first.
+              </p>
             </div>
-            <p className="text-[13px] text-slate-300">
-              A single engine for all states. As data comes online, features switch on via admin
-              controls.
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-            <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-              Honest defaults
+
+            <div className="flex flex-wrap gap-3">
+              <a
+                href="#state-search"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-amber-400 px-4 text-sm font-medium text-slate-950 shadow-lg shadow-amber-500/20 hover:bg-amber-300"
+              >
+                Find your representative
+              </a>
+              <Link
+                href="/complaints"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-emerald-400 px-4 text-sm font-medium text-emerald-950 shadow-lg shadow-emerald-500/20 hover:bg-emerald-300"
+              >
+                File a complaint
+              </Link>
+              <Link
+                href="/rti"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-slate-600 bg-slate-900/80 px-4 text-sm font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
+              >
+                Draft an RTI
+              </Link>
             </div>
-            <p className="text-[13px] text-slate-300">
-              No mock toggles or fake numbers – every action is backed by real APIs, payments, and
-              filings.
-            </p>
+
+            <div className="grid gap-3 text-xs text-slate-400 sm:grid-cols-3">
+              <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3">
+                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+                  Delhi live
+                </div>
+                <p className="text-[13px] text-slate-300">
+                  RTI drafting, civic complaints, and rankings are wired end-to-end for Delhi.
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3">
+                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+                  India-ready
+                </div>
+                <p className="text-[13px] text-slate-300">
+                  A single engine for all states. As data comes online, features switch on via admin
+                  controls.
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3">
+                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+                  Honest defaults
+                </div>
+                <p className="text-[13px] text-slate-300">
+                  No mock toggles or fake numbers – every action is backed by real APIs, payments,
+                  and filings.
+                </p>
+              </div>
+            </div>
+
+            {showAdminLink && (
+              <a
+                href={`/system?adminUserId=${devAdminId}`}
+                className="inline-flex items-center justify-center rounded-full bg-slate-900/80 px-3 py-1 text-[11px] font-medium text-slate-100 ring-1 ring-slate-700 hover:bg-slate-800"
+              >
+                Dev admin
+              </a>
+            )}
           </div>
         </div>
-
-        {showAdminLink && (
-          <a
-            href={`/system?adminUserId=${devAdminId}`}
-            className="fixed bottom-3 right-3 inline-flex items-center justify-center rounded-full bg-slate-900/80 px-3 py-1 text-[11px] font-medium text-slate-100 ring-1 ring-slate-700 hover:bg-slate-800"
-          >
-            Dev admin
-          </a>
-        )}
       </section>
 
       <section id="state-search" className="mt-8 space-y-4">
