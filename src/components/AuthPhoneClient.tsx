@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth, hasFirebaseConfig } from "@/lib/firebase";
@@ -23,26 +23,45 @@ export function AuthPhoneClient(props: Props) {
     useState<import("firebase/auth").ConfirmationResult | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    if (!hasFirebaseConfig) return;
-    if (typeof window === "undefined") return;
-    const existing = document.getElementById("neta-recaptcha-container");
-    if (!existing) return;
+  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
-    if (!(window as any).netaRecaptchaVerifier) {
-      (window as any).netaRecaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "neta-recaptcha-container",
-        {
-          size: "invisible"
-        }
-      );
+  const getVerifier = () => {
+    if (!hasFirebaseConfig) return null;
+    if (typeof window === "undefined") return null;
+
+    if ((window as any).netaRecaptchaVerifier) {
+      return (window as any).netaRecaptchaVerifier as RecaptchaVerifier;
     }
-  }, []);
+
+    if (recaptchaContainerRef.current) {
+      try {
+        const verifier = new RecaptchaVerifier(
+          auth,
+          recaptchaContainerRef.current,
+          {
+            size: "invisible"
+          }
+        );
+        (window as any).netaRecaptchaVerifier = verifier;
+        return verifier;
+      } catch (err) {
+        console.error("Error creating RecaptchaVerifier:", err);
+        return null;
+      }
+    }
+    return null;
+  };
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Initialize verifier on mount if possible, but also rely on lazy init
+  useEffect(() => {
+    if (mounted && recaptchaContainerRef.current && !(window as any).netaRecaptchaVerifier) {
+       getVerifier();
+    }
+  }, [mounted]);
 
   const close = () => {
     if (props.onClose) {
@@ -69,7 +88,12 @@ export function AuthPhoneClient(props: Props) {
 
     try {
       setLoading(true);
-      const verifier = (window as any).netaRecaptchaVerifier as RecaptchaVerifier;
+      
+      const verifier = getVerifier();
+      if (!verifier) {
+        throw new Error("RecaptchaVerifier could not be initialized. Please refresh and try again.");
+      }
+
       const result = await signInWithPhoneNumber(auth, fullNumber, verifier);
       setConfirmation(result);
       setStep("otp");
@@ -272,7 +296,7 @@ export function AuthPhoneClient(props: Props) {
           )}
         </div>
 
-        <div id="neta-recaptcha-container" className="mt-2 h-0 overflow-hidden" />
+        <div ref={recaptchaContainerRef} className="mt-2 h-0 overflow-hidden" />
       </div>
     </div>
   );
