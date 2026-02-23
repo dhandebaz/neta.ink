@@ -74,7 +74,8 @@ export function AuthPhoneClient(props: Props) {
       setConfirmation(result);
       setStep("otp");
       setMessage("OTP sent. Please check your phone.");
-    } catch {
+    } catch (err) {
+      console.error("Phone sign-in error:", err);
       setError("Could not send OTP. Please try again.");
     } finally {
       setLoading(false);
