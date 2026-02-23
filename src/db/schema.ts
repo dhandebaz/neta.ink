@@ -8,7 +8,8 @@ import {
   pgTable,
   serial,
   text,
-  timestamp
+  timestamp,
+  uniqueIndex
 } from "drizzle-orm/pg-core";
 import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 
@@ -114,6 +115,28 @@ export const users = pgTable("users", {
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const votes = pgTable(
+  "votes",
+  {
+    id: serial("id").primaryKey(),
+    user_id: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+    politician_id: integer("politician_id")
+      .notNull()
+      .references(() => politicians.id),
+    vote_type: text("vote_type").notNull(), // "up" or "down"
+    created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => ({
+    userPoliticianUnique: uniqueIndex("votes_user_politician_unique").on(
+      table.user_id,
+      table.politician_id
+    )
+  })
+);
+
 export const complaints = pgTable("complaints", {
   id: serial("id").primaryKey(),
   user_id: integer("user_id")
@@ -166,6 +189,20 @@ export const rti_requests = pgTable("rti_requests", {
   response_due_date: date("response_due_date"),
   response_received: boolean("response_received").notNull().default(false),
   response_url: text("response_url"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const politician_mentions = pgTable("politician_mentions", {
+  id: serial("id").primaryKey(),
+  politician_id: integer("politician_id")
+    .notNull()
+    .references(() => politicians.id),
+  source_type: text("source_type").notNull(),
+  title: text("title").notNull(),
+  snippet: text("snippet").notNull(),
+  url: text("url").notNull(),
+  sentiment: text("sentiment"),
+  published_at: timestamp("published_at", { withTimezone: true }),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
@@ -271,7 +308,16 @@ export const politiciansRelations = relations(politicians, ({ one, many }) => ({
     fields: [politicians.constituency_id],
     references: [constituencies.id]
   }),
-  complaints: many(complaints)
+  complaints: many(complaints),
+  votes: many(votes),
+  mentions: many(politician_mentions)
+}));
+
+export const politicianMentionsRelations = relations(politician_mentions, ({ one }) => ({
+  politician: one(politicians, {
+    fields: [politician_mentions.politician_id],
+    references: [politicians.id]
+  })
 }));
 
 export const civicBodiesRelations = relations(civic_bodies, ({ one, many }) => ({
@@ -302,7 +348,19 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   complaints: many(complaints),
   rti_requests: many(rti_requests),
   payments: many(payments),
-  task_usage: many(task_usage)
+  task_usage: many(task_usage),
+  votes: many(votes)
+}));
+
+export const votesRelations = relations(votes, ({ one }) => ({
+  user: one(users, {
+    fields: [votes.user_id],
+    references: [users.id]
+  }),
+  politician: one(politicians, {
+    fields: [votes.politician_id],
+    references: [politicians.id]
+  })
 }));
 
 export const complaintsRelations = relations(complaints, ({ one }) => ({
@@ -380,11 +438,17 @@ export type NewCivicOfficial = InferInsertModel<typeof civic_officials>;
 export type User = InferSelectModel<typeof users>;
 export type NewUser = InferInsertModel<typeof users>;
 
+export type Vote = InferSelectModel<typeof votes>;
+export type NewVote = InferInsertModel<typeof votes>;
+
 export type Complaint = InferSelectModel<typeof complaints>;
 export type NewComplaint = InferInsertModel<typeof complaints>;
 
 export type RtiRequest = InferSelectModel<typeof rti_requests>;
 export type NewRtiRequest = InferInsertModel<typeof rti_requests>;
+
+export type PoliticianMention = InferSelectModel<typeof politician_mentions>;
+export type NewPoliticianMention = InferInsertModel<typeof politician_mentions>;
 
 export type Payment = InferSelectModel<typeof payments>;
 export type NewPayment = InferInsertModel<typeof payments>;

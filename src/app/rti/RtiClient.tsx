@@ -264,9 +264,39 @@ export function RtiClient({
         });
 
         if (result.status === "success") {
-          setMessage(
-            `Payment captured for RTI ${json.data.rti_request_id}. Your RTI will now be processed.`
-          );
+          try {
+            const verifyRes = await fetch("/api/payments/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: order.id,
+                razorpay_payment_id: result.paymentId,
+                razorpay_signature: result.signature
+              })
+            });
+
+            const verifyJson = (await verifyRes
+              .json()
+              .catch(() => null)) as
+              | { success?: boolean; message?: string; error?: string }
+              | null;
+
+            if (verifyRes.ok && verifyJson && verifyJson.success) {
+              setMessage("Payment successful. Your RTI request has been saved.");
+              setQuestion("");
+              setDraft(null);
+              setRtiText("");
+              void loadMyRtis();
+            } else {
+              const message =
+                verifyJson && verifyJson.error && typeof verifyJson.error === "string"
+                  ? verifyJson.error
+                  : "Payment verification failed. Please contact support.";
+              setError(message);
+            }
+          } catch {
+            setError("Payment verification failed. Please contact support.");
+          }
         } else if (result.status === "dismissed") {
           setMessage(
             "Checkout closed. You can retry payment for this RTI from your history later."
@@ -274,8 +304,6 @@ export function RtiClient({
         } else {
           setError("Payment could not be completed. You can retry later from your RTIs.");
         }
-
-        void loadMyRtis();
       }
     } catch {
       setError("Network error while saving RTI.");

@@ -9,15 +9,18 @@ import { CurrentUserProvider } from "@/components/CurrentUserProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "neta – RTIs, complaints, and rankings for India",
+  title: {
+    template: "%s | NetaInk",
+    default: "NetaInk | Hold your representatives accountable"
+  },
   description:
-    "neta is a mobile-first political accountability platform for India-wide RTIs, civic complaints, and representative rankings, starting with Delhi.",
+    "NetaInk is a mobile-first civic platform to file RTIs, turn photos into complaints, and see how MPs and MLAs rank across India, starting with Delhi.",
   openGraph: {
     type: "website",
     url: "https://neta.ink",
-    title: "neta – RTIs, complaints, and rankings for India",
+    title: "NetaInk | Hold your representatives accountable",
     description:
-      "Hold your neta accountable with RTIs, civic complaints, and rankings across India. Phase 1 is live in Delhi.",
+      "File RTIs, submit civic complaints, and track representative rankings across India. Delhi is live, more states coming soon.",
     images: ["/og-default.jpg"]
   },
   metadataBase: new URL("https://neta.ink"),

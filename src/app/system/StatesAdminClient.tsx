@@ -34,6 +34,12 @@ type RunTaskState = {
   error: string | null;
 };
 
+type AgentTaskState = {
+  loading: boolean;
+  error: string | null;
+  message: string | null;
+};
+
 type AddStateForm = {
   code: string;
   name: string;
@@ -88,6 +94,11 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
     loading: false,
     error: null,
     savingKey: null
+  });
+  const [agentTaskState, setAgentTaskState] = useState<AgentTaskState>({
+    loading: false,
+    error: null,
+    message: null
   });
 
   const selectedState = useMemo(
@@ -347,6 +358,63 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
       setRunTaskState({
         loadingTaskType: null,
         error: "Network error while running task"
+      });
+    }
+  }
+
+  async function runAgentTask(stateCode: string) {
+    setAgentTaskState({
+      loading: true,
+      error: null,
+      message: null
+    });
+
+    try {
+      const res = await fetch("/api/admin/ingest/agent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-user-id": String(adminUserId)
+        },
+        body: JSON.stringify({
+          stateCode,
+          taskType: "politicians"
+        })
+      });
+
+      const json = (await res.json().catch(() => null)) as
+        | { success?: boolean; error?: string; count?: number }
+        | null;
+
+      if (!res.ok || !json || json.success !== true) {
+        const message =
+          json && typeof json.error === "string" && json.error.length > 0
+            ? json.error
+            : `Failed to run agent ingestion (${res.status})`;
+        setAgentTaskState({
+          loading: false,
+          error: message,
+          message: null
+        });
+        return;
+      }
+
+      const countLabel =
+        typeof json.count === "number" && json.count > 0
+          ? `Successfully extracted and saved ${json.count} politicians.`
+          : "Successfully extracted and saved politicians.";
+
+      await refreshTasks(stateCode);
+      setAgentTaskState({
+        loading: false,
+        error: null,
+        message: countLabel
+      });
+    } catch {
+      setAgentTaskState({
+        loading: false,
+        error: "Network error while running agent ingestion",
+        message: null
       });
     }
   }
@@ -755,10 +823,34 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
                       </button>
                     )
                   )}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void runAgentTask(selectedState.code)
+                    }
+                    className="inline-flex items-center rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-medium text-white disabled:opacity-60"
+                    disabled={
+                      agentTaskState.loading || loadTasksState.loading
+                    }
+                  >
+                    {agentTaskState.loading
+                      ? "Agent is browsing the web... this may take 30-60 seconds"
+                      : "✨ Auto-Ingest via AI Brain"}
+                  </button>
                 </div>
                 {runTaskState.error && (
                   <p className="text-[11px] text-red-600">
                     {runTaskState.error}
+                  </p>
+                )}
+                {agentTaskState.error && (
+                  <p className="text-[11px] text-red-600">
+                    {agentTaskState.error}
+                  </p>
+                )}
+                {agentTaskState.message && (
+                  <p className="text-[11px] text-emerald-700">
+                    {agentTaskState.message}
                   </p>
                 )}
                 <div className="overflow-x-auto rounded-lg border">

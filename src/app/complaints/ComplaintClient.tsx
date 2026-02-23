@@ -347,9 +347,44 @@ export function ComplaintClient(props: Props) {
         });
 
         if (result.status === "success") {
-          setMessage(
-            `Payment captured for complaint ${json.data.complaint_id}. Your complaint will now be processed.`
-          );
+          try {
+            const verifyRes = await fetch("/api/payments/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: order.id,
+                razorpay_payment_id: result.paymentId,
+                razorpay_signature: result.signature
+              })
+            });
+
+            const verifyJson = (await verifyRes
+              .json()
+              .catch(() => null)) as
+              | { success?: boolean; message?: string; error?: string }
+              | null;
+
+            if (verifyRes.ok && verifyJson && verifyJson.success) {
+              setMessage("Payment successful. Your complaint has been submitted.");
+              setPhotoFile(null);
+              setPhotoUrl(null);
+              setAnalysis(null);
+              setLocationText("");
+              setManualTitle("");
+              setManualDescription("");
+              setManualDepartment("");
+              setManualSeverity("medium");
+              setFileOpen(false);
+            } else {
+              const message =
+                verifyJson && verifyJson.error && typeof verifyJson.error === "string"
+                  ? verifyJson.error
+                  : "Payment verification failed. Please contact support.";
+              setError(message);
+            }
+          } catch {
+            setError("Payment verification failed. Please contact support.");
+          }
         } else if (result.status === "dismissed") {
           setMessage(
             "Checkout closed. You can retry payment for this complaint from your history later."
@@ -685,9 +720,15 @@ export function ComplaintClient(props: Props) {
                     {new Date(c.created_at).toLocaleString()} · {c.location_text}
                   </div>
                 </div>
-                <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-200">
-                  {c.status}
-                </span>
+                {c.status === "filed" ? (
+                  <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
+                    Filed &amp; Sent
+                  </span>
+                ) : (
+                  <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-200">
+                    {c.status}
+                  </span>
+                )}
               </div>
               <div className="mt-2 text-[11px] text-slate-400">
                 Severity: {c.severity}

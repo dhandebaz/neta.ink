@@ -1,6 +1,7 @@
- "use client";
+"use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AuthPhoneClient } from "./AuthPhoneClient";
 import { StateOnboardingClient } from "./StateOnboardingClient";
 
@@ -100,11 +101,17 @@ export function UserMenuClient(props: Props) {
               {stateLabel}
             </button>
           )}
+          <Link
+            href="/dashboard"
+            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-slate-600 px-4 text-[11px] font-medium text-slate-100 hover:bg-slate-800"
+          >
+            Dashboard
+          </Link>
           <button
             type="button"
             onClick={signOut}
             disabled={signingOut}
-            className="inline-flex items-center justify-center rounded-full border border-slate-600 px-3 py-1 text-[11px] font-medium text-slate-100 hover:bg-slate-800 disabled:opacity-60"
+            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-slate-600 px-3 text-[11px] font-medium text-slate-100 hover:bg-slate-800 disabled:opacity-60"
           >
             {signingOut ? "Signing out..." : "Sign out"}
           </button>

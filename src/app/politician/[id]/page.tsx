@@ -1,14 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { db } from "@/db/client";
 import {
   complaints,
   constituencies,
   politicians,
+  politician_mentions,
   rti_requests,
-  states
+  states,
+  votes
 } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth/session";
+import { VotingClient } from "./VotingClient";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -20,88 +24,56 @@ function formatCrores(value: bigint): string {
   return crores.toFixed(2);
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: PageProps,
+  _parent: ResolvingMetadata
+): Promise<Metadata> {
   const resolvedParams = await params;
   const id = Number(resolvedParams.id);
 
-  if (!Number.isFinite(id) || id <= 0) {
+  if (Number.isNaN(id)) {
     return {
-      title: "neta politician – not found",
-      description: "This politician profile could not be found on neta.",
-      openGraph: {
-        type: "website",
-        url: `https://neta.ink/politician/${encodeURIComponent(resolvedParams.id)}`,
-        title: "neta politician – not found",
-        description: "This politician profile could not be found on neta.",
-        images: ["/og-default.jpg"]
-      },
-      alternates: {
-        canonical: `https://neta.ink/politician/${encodeURIComponent(resolvedParams.id)}`
-      }
+      title: "Not Found"
     };
   }
 
-  try {
-    const rows = await db
-      .select()
-      .from(politicians)
-      .where(eq(politicians.id, id))
-      .limit(1);
+  const rows = await db
+    .select()
+    .from(politicians)
+    .where(eq(politicians.id, id))
+    .limit(1);
 
-    const politicianRow = rows[0];
+  const politician = rows[0];
 
-    if (!politicianRow) {
-      return {
-        title: "neta politician – not found",
-        description: "This politician profile could not be found on neta.",
-        openGraph: {
-          type: "website",
-          url: `https://neta.ink/politician/${encodeURIComponent(resolvedParams.id)}`,
-          title: "neta politician – not found",
-          description: "This politician profile could not be found on neta.",
-          images: ["/og-default.jpg"]
-        },
-        alternates: {
-          canonical: `https://neta.ink/politician/${encodeURIComponent(resolvedParams.id)}`
-        }
-      };
-    }
-
-    const title = `${politicianRow.name} – ${politicianRow.position} on neta`;
-    const description =
-      "View this representative's role, constituency, declared assets, cases, and citizen activity on neta.";
-
+  if (!politician) {
     return {
+      title: "Politician Not Found"
+    };
+  }
+
+  const title = `${politician.name} - ${politician.party} | NetaInk`;
+  const description = `View ${politician.name}'s civic rating, declared assets (₹${(
+    Number(politician.assets_worth) / 10000000
+  ).toFixed(1)} Cr), and criminal cases. Vote and hold them accountable on NetaInk.`;
+
+  const image = politician.photo_url || "/og-default.jpg";
+
+  return {
+    title,
+    description,
+    openGraph: {
       title,
       description,
-      openGraph: {
-        type: "website",
-        url: `https://neta.ink/politician/${encodeURIComponent(resolvedParams.id)}`,
-        title,
-        description,
-        images: ["/og-default.jpg"]
-      },
-      alternates: {
-        canonical: `https://neta.ink/politician/${encodeURIComponent(resolvedParams.id)}`
-      }
-    };
-  } catch (error) {
-    console.error("Error loading politician metadata", error);
-    return {
-      title: "neta politician – not available",
-      description: "This politician profile is temporarily unavailable.",
-      openGraph: {
-        type: "website",
-        url: `https://neta.ink/politician/${encodeURIComponent(resolvedParams.id)}`,
-        title: "neta politician – not available",
-        description: "This politician profile is temporarily unavailable.",
-        images: ["/og-default.jpg"]
-      },
-      alternates: {
-        canonical: `https://neta.ink/politician/${encodeURIComponent(resolvedParams.id)}`
-      }
-    };
-  }
+      images: [image],
+      type: "profile"
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image]
+    }
+  };
 }
 
 export default async function PoliticianPage({ params }: PageProps) {
@@ -125,6 +97,10 @@ export default async function PoliticianPage({ params }: PageProps) {
   let complaintsCount = 0;
   let rtiCount = 0;
   let ratingNumber = 0;
+  let currentUserVote: "up" | "down" | null = null;
+  let mentions: (typeof politician_mentions.$inferSelect)[] = [];
+
+  const currentUser = await getCurrentUser();
 
   try {
     const rows =
@@ -159,7 +135,7 @@ export default async function PoliticianPage({ params }: PageProps) {
         }
       }
 
-      const [complaintRows, rtiRows] =
+      const [complaintRows, rtiRows, mentionRows] =
         (await Promise.all([
           db
             .select({ id: complaints.id })
@@ -168,12 +144,37 @@ export default async function PoliticianPage({ params }: PageProps) {
           db
             .select({ id: rti_requests.id })
             .from(rti_requests)
-            .where(eq(rti_requests.politician_id, politician.id))
+            .where(eq(rti_requests.politician_id, politician.id)),
+          db
+            .select()
+            .from(politician_mentions)
+            .where(eq(politician_mentions.politician_id, politician.id))
+            .orderBy(desc(politician_mentions.published_at), desc(politician_mentions.created_at))
+            .limit(5)
         ])) ?? [];
 
       complaintsCount = Array.isArray(complaintRows) ? complaintRows.length : 0;
       rtiCount = Array.isArray(rtiRows) ? rtiRows.length : 0;
       ratingNumber = Number(politician.rating ?? 0);
+      mentions = Array.isArray(mentionRows) ? mentionRows : [];
+
+      if (currentUser) {
+        const [voteRow] =
+          (await db
+            .select()
+            .from(votes)
+            .where(
+              and(
+                eq(votes.user_id, currentUser.id),
+                eq(votes.politician_id, politician.id)
+              )
+            )
+            .limit(1)) ?? [];
+
+        if (voteRow && (voteRow.vote_type === "up" || voteRow.vote_type === "down")) {
+          currentUserVote = voteRow.vote_type;
+        }
+      }
     }
   } catch (error) {
     console.error("Error loading politician profile", error);
@@ -200,6 +201,19 @@ export default async function PoliticianPage({ params }: PageProps) {
     politician.position === "MP" || politician.position === "MLA"
       ? politician.position
       : "MLA";
+
+  const formatDate = (value: Date | null) => {
+    if (!value) return "";
+    try {
+      return value.toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      });
+    } catch {
+      return "";
+    }
+  };
 
   const structuredData: Record<string, any> = {
     "@context": "https://schema.org",
@@ -265,10 +279,15 @@ export default async function PoliticianPage({ params }: PageProps) {
             </div>
             <div>
               <div className="font-semibold text-slate-200">Rating</div>
-              <div className="text-slate-100">
-                {ratingNumber.toFixed(1)} / 5 ({politician.votes_up} up,{" "}
-                {politician.votes_down} down)
-              </div>
+              <VotingClient
+                politicianId={politician.id}
+                initialVotesUp={politician.votes_up}
+                initialVotesDown={politician.votes_down}
+                initialRating={ratingNumber}
+                initialUserVote={currentUserVote}
+                isLoggedIn={Boolean(currentUser)}
+                isVoterVerified={Boolean(currentUser?.voter_id_verified)}
+              />
             </div>
           </div>
 
@@ -296,6 +315,70 @@ export default async function PoliticianPage({ params }: PageProps) {
               </Link>
             </div>
           </div>
+        </section>
+
+        <section className="space-y-3 rounded-lg border border-slate-800 bg-slate-900/70 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-base font-semibold text-slate-50">
+              Latest Updates &amp; Mentions
+            </h2>
+          </div>
+          {mentions.length === 0 ? (
+            <p className="text-sm text-slate-400">
+              No recent updates tracked. Our AI agents sweep for news periodically.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {mentions.map((m) => {
+                const sentiment = (m.sentiment ?? "neutral").toLowerCase();
+                let sentimentLabel = "Neutral";
+                let sentimentClass =
+                  "bg-slate-800 text-slate-200 border border-slate-700";
+                if (sentiment === "positive") {
+                  sentimentLabel = "Positive";
+                  sentimentClass =
+                    "bg-emerald-500/10 text-emerald-300 border border-emerald-500/50";
+                } else if (sentiment === "negative") {
+                  sentimentLabel = "Negative";
+                  sentimentClass =
+                    "bg-rose-500/10 text-rose-300 border border-rose-500/50";
+                }
+
+                const publishedLabel = m.published_at
+                  ? formatDate(m.published_at)
+                  : "";
+
+                return (
+                  <a
+                    key={m.id}
+                    href={m.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block rounded-2xl border border-slate-800 bg-slate-950/70 p-3 transition hover:border-amber-400/70 hover:bg-slate-900"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${sentimentClass}`}
+                      >
+                        {sentimentLabel}
+                      </span>
+                      {publishedLabel && (
+                        <span className="text-[11px] text-slate-400">
+                          {publishedLabel}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-2 text-sm font-semibold text-slate-50">
+                      {m.title}
+                    </div>
+                    <p className="mt-1 line-clamp-3 text-xs text-slate-400">
+                      {m.snippet}
+                    </p>
+                  </a>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section className="space-y-1 text-xs text-slate-400">

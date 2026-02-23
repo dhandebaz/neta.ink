@@ -1,6 +1,6 @@
 import { db } from "@/db/client";
 import { constituencies, politicians, states } from "@/db/schema";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 
 export type DelhiRankingRow = {
   id: number;
@@ -12,33 +12,26 @@ export type DelhiRankingRow = {
   assets_worth: bigint;
   votes_up: number;
   votes_down: number;
+  rating: number;
   score: number;
 };
 
 function computeScore(input: {
+  rating: number;
   criminal_cases: number;
   assets_worth: bigint;
-  votes_up: number;
-  votes_down: number;
 }): number {
+  const rating = Number.isFinite(input.rating) ? input.rating : 0;
   const criminalCases = input.criminal_cases ?? 0;
-  const votesUp = input.votes_up ?? 0;
-  const votesDown = input.votes_down ?? 0;
-  const base = 3;
-
-  const casesPenalty = criminalCases * 0.5;
 
   const crores =
     Number(input.assets_worth ?? BigInt(0)) / 10_000_000 || 0;
-  const assetsPenalty = crores * 0.05;
 
-  const votesDelta = votesUp - votesDown;
-  const votesBoost = votesDelta * 0.01;
+  const raw =
+    rating * 2 -
+    criminalCases * 0.5 -
+    crores * 0.01;
 
-  const raw = base - casesPenalty - assetsPenalty + votesBoost;
-
-  if (raw < 0) return 0;
-  if (raw > 5) return 5;
   return Number(raw.toFixed(2));
 }
 
@@ -64,7 +57,8 @@ export async function getDelhiRankings(limit = 50): Promise<DelhiRankingRow[]> {
         criminal_cases: politicians.criminal_cases,
         assets_worth: politicians.assets_worth,
         votes_up: politicians.votes_up,
-        votes_down: politicians.votes_down
+        votes_down: politicians.votes_down,
+        rating: politicians.rating
       })
       .from(politicians)
       .where(
@@ -99,10 +93,9 @@ export async function getDelhiRankings(limit = 50): Promise<DelhiRankingRow[]> {
 
     const scored: DelhiRankingRow[] = rows.map((row) => {
       const score = computeScore({
+        rating: Number(row.rating ?? 0),
         criminal_cases: row.criminal_cases,
-        assets_worth: row.assets_worth,
-        votes_up: row.votes_up,
-        votes_down: row.votes_down
+        assets_worth: row.assets_worth
       });
 
       const constituencyName =
@@ -122,11 +115,12 @@ export async function getDelhiRankings(limit = 50): Promise<DelhiRankingRow[]> {
         assets_worth: row.assets_worth,
         votes_up: row.votes_up,
         votes_down: row.votes_down,
+        rating: Number(row.rating ?? 0),
         score
       };
     });
 
-    scored.sort((a, b) => a.score - b.score);
+    scored.sort((a, b) => b.score - a.score);
 
     return scored.slice(0, limit);
   } catch (error) {
