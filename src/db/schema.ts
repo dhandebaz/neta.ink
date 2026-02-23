@@ -132,7 +132,9 @@ export const votes = pgTable("votes", {
   politician_id: integer("politician_id").notNull().references(() => politicians.id),
   vote_type: text("vote_type").notNull(),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
-}, (t) => [unique("user_politician_vote_unq").on(t.user_id, t.politician_id)]);
+}, (t) => ({
+  userPoliticianVoteUnq: unique("user_politician_vote_unq").on(t.user_id, t.politician_id)
+}));
 
 export const complaints = pgTable("complaints", {
   id: serial("id").primaryKey(),
