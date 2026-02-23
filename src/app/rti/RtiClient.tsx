@@ -339,18 +339,18 @@ export function RtiClient({
         </div>
       )}
 
-      <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/80">
-        <div className="flex flex-col gap-2 border-b border-slate-800/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80">
+        <div className="flex flex-col gap-2 border-b border-slate-200 dark:border-slate-800/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300">
               Draft a new RTI
             </div>
-            <p className="mt-1 text-xs text-slate-300">
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
               Describe what you want to ask under RTI. neta can help draft, but you always control the final text.
             </p>
           </div>
           {user && (
-            <div className="text-[11px] text-slate-400">
+            <div className="text-[11px] text-slate-500 dark:text-slate-400">
               Signed in as user #{user.id} ({user.state_code})
             </div>
           )}
@@ -359,12 +359,12 @@ export function RtiClient({
         <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
           <div className="grid gap-4 md:grid-cols-[1fr,2fr]">
             <div className="space-y-3">
-              <label className="block text-xs font-medium text-slate-200">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-200">
                 Target type
                 <select
                   value={targetType}
                   onChange={(e) => setTargetType(e.target.value as TargetType)}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
+                  className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:border-amber-400"
                 >
                   <option value="DEPT">State department / PIO</option>
                   <option value="MLA">MLA (State Assembly)</option>
@@ -372,23 +372,23 @@ export function RtiClient({
                 </select>
               </label>
               {(targetType === "MP" || targetType === "MLA") && (
-                <label className="block text-xs font-medium text-slate-200">
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-200">
                   Target politician ID
                   <input
                     type="text"
                     value={targetIdInput}
                     onChange={(e) => setTargetIdInput(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                    className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-400"
                     placeholder="Internal politician_id (numeric)"
                   />
                 </label>
               )}
               {initialPoliticianSummary && (
-                <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-3 text-xs space-y-1">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-3 text-xs space-y-1">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                     Target representative
                   </div>
-                  <div className="text-xs text-slate-200">
+                  <div className="text-xs text-slate-700 dark:text-slate-200">
                     {initialPoliticianSummary.name} · {initialPoliticianSummary.position}
                     {initialPoliticianSummary.constituencyName
                       ? ` · ${initialPoliticianSummary.constituencyName}`
@@ -397,7 +397,7 @@ export function RtiClient({
                   <div className="text-[11px]">
                     <a
                       href={`/politician/${initialPoliticianSummary.id}`}
-                      className="text-amber-300 hover:text-amber-200"
+                      className="text-amber-600 dark:text-amber-300 hover:text-amber-500 dark:hover:text-amber-200"
                     >
                       View profile
                     </a>
@@ -407,17 +407,17 @@ export function RtiClient({
             </div>
 
             <div className="space-y-3">
-              <label className="block text-xs font-medium text-slate-200">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-200">
                 RTI question / information sought
                 <textarea
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
-                  className="mt-1 w-full min-h-[96px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                  className="mt-1 w-full min-h-[96px] rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-400"
                   placeholder="Describe clearly what information you want under RTI."
                 />
               </label>
               {!canUseAiDraft && (
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
                   Automatic drafting is currently unavailable. You can still write and submit your
                   RTI manually.
                 </p>
@@ -438,51 +438,51 @@ export function RtiClient({
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/80">
-        <div className="border-b border-slate-800/80 px-4 py-3 sm:px-5">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80">
+        <div className="border-b border-slate-200 dark:border-slate-800/80 px-4 py-3 sm:px-5">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
             RTI text
           </div>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Write or edit the full RTI body that will be saved. AI drafts, when available, appear here.
           </p>
         </div>
 
-        <div className="grid gap-4 border-t border-slate-800/80 px-4 py-4 sm:grid-cols-[2fr,1fr] sm:px-5 sm:py-5">
+        <div className="grid gap-4 border-t border-slate-200 dark:border-slate-800/80 px-4 py-4 sm:grid-cols-[2fr,1fr] sm:px-5 sm:py-5">
           <div className="space-y-3">
-            <label className="block text-xs font-medium text-slate-200">
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-200">
               RTI body
               <textarea
                 value={rtiText}
                 onChange={(e) => setRtiText(e.target.value)}
-                className="mt-1 w-full min-h-[220px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                className="mt-1 w-full min-h-[220px] rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-400"
                 placeholder="Write the full RTI application text that you want to file."
               />
             </label>
           </div>
-          <div className="space-y-3 text-xs text-slate-200">
+          <div className="space-y-3 text-xs text-slate-700 dark:text-slate-200">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 PIO name
               </div>
-              <div className="mt-1 text-xs text-slate-200">
+              <div className="mt-1 text-xs text-slate-700 dark:text-slate-200">
                 {draft?.pio_name || "Not specified"}
               </div>
             </div>
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 PIO address
               </div>
-              <div className="mt-1 whitespace-pre-line text-xs text-slate-200">
+              <div className="mt-1 whitespace-pre-line text-xs text-slate-700 dark:text-slate-200">
                 {draft?.pio_address || "Not specified"}
               </div>
             </div>
             {draft && draft.filing_instructions.length > 0 && (
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   Filing instructions
                 </div>
-                <ul className="mt-1 list-disc list-inside space-y-1 text-xs text-slate-300">
+                <ul className="mt-1 list-disc list-inside space-y-1 text-xs text-slate-600 dark:text-slate-300">
                   {draft.filing_instructions.map((step, index) => (
                     <li key={index}>{step}</li>
                   ))}
@@ -492,7 +492,7 @@ export function RtiClient({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 border-t border-slate-800/80 px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap gap-3 border-t border-slate-200 dark:border-slate-800/80 px-4 py-3 sm:px-5">
           {rtiEnabled !== false && (
             <button
               type="button"
@@ -506,29 +506,29 @@ export function RtiClient({
           <button
             type="button"
             onClick={handleDownloadPdf}
-            className="inline-flex items-center justify-center rounded-full border border-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
+            className="inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-100 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-200"
           >
             Download RTI PDF
           </button>
         </div>
       </section>
 
-      <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-4 sm:px-5 sm:py-5">
+      <section className="space-y-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 px-4 py-4 sm:px-5 sm:py-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               My RTIs
             </div>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               View the RTIs you have drafted and track their status.
             </p>
           </div>
         </div>
         {myLoading && (
-          <p className="text-xs text-slate-400">Loading your RTI history…</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Loading your RTI history…</p>
         )}
         {!myLoading && myRtis.length === 0 && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-500">
             You have not drafted any RTIs yet.
           </p>
         )}
@@ -536,28 +536,28 @@ export function RtiClient({
           {myRtis.map((rti) => (
             <article
               key={rti.id}
-              className="rounded-xl border border-slate-800 bg-slate-950/90 p-3 text-xs text-slate-200"
+              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/90 p-3 text-xs text-slate-700 dark:text-slate-200"
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="text-sm font-semibold text-slate-50 line-clamp-2">
+                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-50 line-clamp-2">
                     {rti.question}
                   </div>
-                  <div className="mt-1 text-[11px] text-slate-400">
+                  <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                     {new Date(rti.created_at).toLocaleString()}
                   </div>
                 </div>
-                <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-200">
+                <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-700 dark:text-amber-200">
                   {rti.status}
                 </span>
               </div>
               {rti.portal_url && (
-                <div className="mt-1 text-[11px] text-slate-400">
+                <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                   Suggested portal: {rti.portal_url}
                 </div>
               )}
               {rti.pio_name && (
-                <div className="mt-1 text-[11px] text-slate-400">
+                <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                   PIO: {rti.pio_name}
                 </div>
               )}
@@ -565,7 +565,7 @@ export function RtiClient({
                 <button
                   type="button"
                   onClick={() => setSelectedRti(rti)}
-                  className="inline-flex items-center rounded-full border border-slate-700 px-3 py-1 text-[11px] font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
+                  className="inline-flex items-center rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-100 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-200"
                 >
                   View full RTI
                 </button>
@@ -576,14 +576,14 @@ export function RtiClient({
       </section>
 
       {selectedRti && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 p-4 text-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 dark:bg-black/70 px-4">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 p-4 text-slate-900 dark:text-slate-50">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h2 className="text-lg font-semibold">
                   {selectedRti.question}
                 </h2>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
                   {new Date(selectedRti.created_at).toLocaleString()} · Status:{" "}
                   {selectedRti.status}
                 </p>
@@ -591,29 +591,29 @@ export function RtiClient({
               <button
                 type="button"
                 onClick={() => setSelectedRti(null)}
-                className="ml-2 inline-flex items-center justify-center rounded-full border border-slate-600 px-2 py-1 text-[11px] hover:border-amber-400 hover:text-amber-200"
+                className="ml-2 inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-600 px-2 py-1 text-[11px] hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-200"
               >
                 Close
               </button>
             </div>
             <div className="mt-3 space-y-3 text-sm">
               {selectedRti.portal_url && (
-                <div className="text-[11px] text-slate-400">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">
                   Suggested portal: {selectedRti.portal_url}
                 </div>
               )}
               {selectedRti.pio_name && (
-                <div className="text-[11px] text-slate-400">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">
                   PIO: {selectedRti.pio_name}
                 </div>
               )}
               {selectedRti.pio_address && (
-                <div className="text-[11px] text-slate-400 whitespace-pre-line">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 whitespace-pre-line">
                   PIO address: {selectedRti.pio_address}
                 </div>
               )}
               {selectedRti.rti_text && (
-                <div className="mt-2 whitespace-pre-line text-sm text-slate-100">
+                <div className="mt-2 whitespace-pre-line text-sm text-slate-800 dark:text-slate-100">
                   {selectedRti.rti_text}
                 </div>
               )}

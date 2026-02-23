@@ -13,7 +13,7 @@ export default async function VolunteerDashboardPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-4">
         <div className="w-full max-w-md space-y-4 text-center">
-          <h1 className="text-2xl font-semibold text-slate-50">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
             Sign in to access your volunteer dashboard
           </h1>
           <div className="mt-2 flex justify-center">
@@ -34,10 +34,10 @@ export default async function VolunteerDashboardPage() {
     return (
       <div className="flex min-h-[40vh] items-center justify-center px-4">
         <div className="w-full max-w-lg space-y-3 text-center">
-          <h1 className="text-xl font-semibold text-slate-50">
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-50">
             State configuration missing
           </h1>
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             Your account is set to a state that is not yet configured for volunteer tasks. Try
             updating your state in the header or contact support.
           </p>
@@ -56,17 +56,17 @@ export default async function VolunteerDashboardPage() {
     return (
       <div className="space-y-6">
         <section className="space-y-3">
-          <h1 className="text-2xl font-semibold text-slate-50 sm:text-3xl">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50 sm:text-3xl">
             Become a verified NetaInk volunteer
           </h1>
-          <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+          <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300 sm:text-base">
             To protect the integrity of civic actions, only citizens with a verified Voter ID
             can join the volunteer network and claim tasks.
           </p>
         </section>
         <section>
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-4 sm:p-5">
-            <p className="text-sm text-slate-200">
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 p-4 sm:p-5">
+            <p className="text-sm text-slate-700 dark:text-slate-200">
               Verify your Voter ID in your account to unlock volunteer tools, local tasks, and
               leaderboard points.
             </p>
@@ -80,10 +80,10 @@ export default async function VolunteerDashboardPage() {
     return (
       <div className="space-y-8">
         <section className="space-y-3">
-          <h1 className="text-2xl font-semibold text-slate-50 sm:text-3xl">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50 sm:text-3xl">
             Join the volunteer network
           </h1>
-          <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+          <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300 sm:text-base">
             Register once to become a NetaInk volunteer for your state. Your profile stays
             linked to your verified identity.
           </p>
@@ -143,21 +143,21 @@ export default async function VolunteerDashboardPage() {
   return (
     <div className="space-y-8">
       <section className="space-y-3">
-        <h1 className="text-2xl font-semibold text-slate-50 sm:text-3xl">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50 sm:text-3xl">
           Volunteer dashboard
         </h1>
-        <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+        <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300 sm:text-base">
           Claim civic tasks, track your active work, and earn contribution points that appear
           on the public volunteer leaderboard.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-slate-50">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
           My active tasks
         </h2>
         {activeTasks.length === 0 ? (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             You have no tasks in progress. Browse open tasks below to claim your first one.
           </p>
         ) : (
@@ -165,22 +165,22 @@ export default async function VolunteerDashboardPage() {
             {activeTasks.map((task) => (
               <div
                 key={task.id}
-                className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 text-sm text-slate-100"
+                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4 text-sm text-slate-900 dark:text-slate-100"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-semibold text-slate-50">
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-50">
                       {task.title}
                     </h3>
-                    <p className="mt-1 text-xs text-slate-300">
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                       {task.description}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300">
+                    <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
                       {task.points_reward} points
                     </span>
-                    <span className="text-[11px] uppercase tracking-wide text-emerald-300">
+                    <span className="text-[11px] uppercase tracking-wide text-emerald-600 dark:text-emerald-300">
                       In progress
                     </span>
                   </div>
@@ -192,11 +192,11 @@ export default async function VolunteerDashboardPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-slate-50">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
           Open tasks in your state
         </h2>
         {openTasks.length === 0 ? (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             There are no open tasks for your state right now. Check back soon as new work is
             added.
           </p>
@@ -207,25 +207,25 @@ export default async function VolunteerDashboardPage() {
                 key={task.id}
                 action={`/api/volunteers/tasks/${task.id}/claim`}
                 method="POST"
-                className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 text-sm text-slate-100"
+                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4 text-sm text-slate-900 dark:text-slate-100"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-semibold text-slate-50">
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-50">
                       {task.title}
                     </h3>
-                    <p className="mt-1 text-xs text-slate-300">
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                       {task.description}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300">
+                    <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
                       {task.points_reward} points
                     </span>
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-3">
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
                     {task.state_id ? "Task for your state" : "Open to volunteers nationwide"}
                   </span>
                   <button

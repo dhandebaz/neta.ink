@@ -89,27 +89,27 @@ export function UserMenuClient(props: Props) {
     <>
       {user ? (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-200">
+          <span className="text-xs text-slate-700 dark:text-slate-200 transition-colors">
             {label}
           </span>
           {stateLabel && (
             <button
               type="button"
               onClick={() => setShowStateModal(true)}
-              className="inline-flex items-center justify-center rounded-full border border-slate-600 px-2 py-0.5 text-[11px] font-medium text-slate-100 hover:bg-slate-800"
+              className="inline-flex items-center justify-center rounded-full border border-slate-300 px-2 py-0.5 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               {stateLabel}
             </button>
           )}
           <Link
             href="/volunteer"
-            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-emerald-500/70 px-3 text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/20"
+            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-emerald-600 px-3 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/70 dark:text-emerald-300 dark:hover:bg-emerald-500/20 transition-colors"
           >
             Volunteer
           </Link>
           <Link
             href="/dashboard"
-            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-slate-600 px-4 text-[11px] font-medium text-slate-100 hover:bg-slate-800"
+            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-slate-300 px-4 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             Dashboard
           </Link>
@@ -117,7 +117,7 @@ export function UserMenuClient(props: Props) {
             type="button"
             onClick={signOut}
             disabled={signingOut}
-            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-slate-600 px-3 text-[11px] font-medium text-slate-100 hover:bg-slate-800 disabled:opacity-60"
+            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-slate-300 px-3 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 disabled:opacity-60 transition-colors"
           >
             {signingOut ? "Signing out..." : "Sign out"}
           </button>
@@ -126,7 +126,7 @@ export function UserMenuClient(props: Props) {
         <button
           type="button"
           onClick={openAuth}
-          className="inline-flex items-center justify-center rounded-full border border-slate-600 px-3 py-1 text-[11px] font-medium text-slate-100 hover:bg-slate-800"
+          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-3 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
           Sign in
         </button>

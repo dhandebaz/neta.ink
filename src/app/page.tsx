@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/db/client";
 import { states } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getUserOrDefaultState } from "@/lib/states";
 import { HomeStateSearchClient } from "./HomeStateSearchClient";
@@ -93,18 +92,18 @@ export default async function HomePage() {
   return (
     <>
       <section className="pt-6 sm:pt-8">
-        <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900 px-4 py-6 sm:px-6 sm:py-7">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100 px-4 py-6 shadow-sm dark:border-slate-800 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 dark:shadow-none sm:px-6 sm:py-7 transition-colors duration-300">
           <div className="pointer-events-none absolute -left-24 -top-24 h-48 w-48 rounded-full bg-amber-400/10 blur-3xl" />
           <div className="pointer-events-none absolute -right-10 bottom-0 h-40 w-40 rounded-full bg-emerald-400/10 blur-3xl" />
           <div className="relative space-y-5">
-            <p className="inline-flex items-center rounded-full bg-slate-900/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-amber-300 ring-1 ring-amber-400/40">
+            <p className="inline-flex items-center rounded-full bg-slate-100/80 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-amber-600 ring-1 ring-amber-500/40 dark:bg-slate-900/80 dark:text-amber-300 dark:ring-amber-400/40 transition-colors">
               India-wide in design · Live in Delhi
             </p>
             <div className="space-y-3">
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl transition-colors">
                 Hold your neta accountable.
               </h1>
-              <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+              <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300 sm:text-base transition-colors">
                 File RTIs, turn photos into civic complaints, and see how MPs and MLAs rank. Built
                 for India, wired end-to-end for Delhi first.
               </p>
@@ -113,47 +112,47 @@ export default async function HomePage() {
             <div className="flex flex-wrap gap-3">
               <a
                 href="#state-search"
-                className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-amber-400 px-4 text-sm font-medium text-slate-950 shadow-lg shadow-amber-500/20 hover:bg-amber-300"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-amber-400 px-4 text-sm font-medium text-slate-950 shadow-lg shadow-amber-500/20 hover:bg-amber-300 transition-colors"
               >
                 Find your representative
               </a>
               <Link
                 href="/complaints"
-                className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-emerald-400 px-4 text-sm font-medium text-emerald-950 shadow-lg shadow-emerald-500/20 hover:bg-emerald-300"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-emerald-400 px-4 text-sm font-medium text-emerald-950 shadow-lg shadow-emerald-500/20 hover:bg-emerald-300 transition-colors"
               >
                 File a complaint
               </Link>
               <Link
                 href="/rti"
-                className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-slate-600 bg-slate-900/80 px-4 text-sm font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-slate-300 bg-white/80 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-amber-400 hover:text-amber-700 dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:border-amber-400 dark:hover:text-amber-200 transition-colors"
               >
                 Draft an RTI
               </Link>
             </div>
 
-            <div className="grid gap-3 text-xs text-slate-400 sm:grid-cols-3">
-              <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3">
-                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+            <div className="grid gap-3 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-3 transition-colors">
+              <div className="rounded-xl border border-slate-200/80 bg-white/80 p-3 dark:border-slate-800/80 dark:bg-slate-950/80 transition-colors">
+                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300 transition-colors">
                   Delhi live
                 </div>
-                <p className="text-[13px] text-slate-300">
+                <p className="text-[13px] text-slate-600 dark:text-slate-300 transition-colors">
                   RTI drafting, civic complaints, and rankings are wired end-to-end for Delhi.
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3">
-                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+              <div className="rounded-xl border border-slate-200/80 bg-white/80 p-3 dark:border-slate-800/80 dark:bg-slate-950/80 transition-colors">
+                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300 transition-colors">
                   India-ready
                 </div>
-                <p className="text-[13px] text-slate-300">
+                <p className="text-[13px] text-slate-600 dark:text-slate-300 transition-colors">
                   A single engine for all states. As data comes online, new states and features
                   appear here.
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3">
-                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+              <div className="rounded-xl border border-slate-200/80 bg-white/80 p-3 dark:border-slate-800/80 dark:bg-slate-950/80 transition-colors">
+                <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300 transition-colors">
                   Honest defaults
                 </div>
-                <p className="text-[13px] text-slate-300">
+                <p className="text-[13px] text-slate-600 dark:text-slate-300 transition-colors">
                   No fake switches or fake numbers – every action leads to real requests, payments,
                   and filings.
                 </p>
@@ -163,7 +162,7 @@ export default async function HomePage() {
             {showAdminLink && (
               <a
                 href={`/system?adminUserId=${devAdminId}`}
-                className="inline-flex items-center justify-center rounded-full bg-slate-900/80 px-3 py-1 text-[11px] font-medium text-slate-100 ring-1 ring-slate-700 hover:bg-slate-800"
+                className="inline-flex items-center justify-center rounded-full bg-slate-100/80 px-3 py-1 text-[11px] font-medium text-slate-700 ring-1 ring-slate-300 hover:bg-slate-200 dark:bg-slate-900/80 dark:text-slate-100 dark:ring-slate-700 dark:hover:bg-slate-800 transition-colors"
               >
                 Dev admin
               </a>
@@ -181,48 +180,48 @@ export default async function HomePage() {
         />
       </section>
 
-      <section className="mt-10 grid gap-4 text-sm text-slate-200 sm:grid-cols-3">
+      <section className="mt-10 grid gap-4 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-3 transition-colors">
         <Link
           href="/rti"
-          className="flex min-h-[120px] flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/70 p-4"
+          className="flex min-h-[120px] flex-col justify-between rounded-xl border border-slate-200 bg-white/70 p-4 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:border-slate-700 transition-colors"
         >
           <div>
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-300">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300 transition-colors">
               RTI drafting
             </div>
-            <p className="text-sm text-slate-200">
+            <p className="text-sm text-slate-700 dark:text-slate-200 transition-colors">
               Draft RTIs tailored to your neta and constituency. Live for Delhi, built for India.
             </p>
           </div>
-          <span className="mt-3 text-xs text-amber-300">Go to RTI</span>
+          <span className="mt-3 text-xs text-amber-600 dark:text-amber-300 transition-colors">Go to RTI</span>
         </Link>
         <Link
           href="/complaints"
-          className="flex min-h-[120px] flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/70 p-4"
+          className="flex min-h-[120px] flex-col justify-between rounded-xl border border-slate-200 bg-white/70 p-4 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:border-slate-700 transition-colors"
         >
           <div>
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-300">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300 transition-colors">
               Civic complaints
             </div>
-            <p className="text-sm text-slate-200">
+            <p className="text-sm text-slate-700 dark:text-slate-200 transition-colors">
               Turn photos and locations into complaints that reach the right civic body in Delhi.
             </p>
           </div>
-          <span className="mt-3 text-xs text-amber-300">Go to complaints</span>
+          <span className="mt-3 text-xs text-amber-600 dark:text-amber-300 transition-colors">Go to complaints</span>
         </Link>
         <Link
           href={delhiReady ? "/rankings/delhi" : "/politicians"}
-          className="flex min-h-[120px] flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/70 p-4"
+          className="flex min-h-[120px] flex-col justify-between rounded-xl border border-slate-200 bg-white/70 p-4 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:border-slate-700 transition-colors"
         >
           <div>
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-300">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300 transition-colors">
               Rankings
             </div>
-            <p className="text-sm text-slate-200">
+            <p className="text-sm text-slate-700 dark:text-slate-200 transition-colors">
               See how Delhi MPs and MLAs stack up on cases, assets, and citizen votes.
             </p>
           </div>
-          <span className="mt-3 text-xs text-amber-300">
+          <span className="mt-3 text-xs text-amber-600 dark:text-amber-300 transition-colors">
             {delhiReady ? "View Delhi rankings" : "Browse politicians"}
           </span>
         </Link>

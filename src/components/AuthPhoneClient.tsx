@@ -147,28 +147,28 @@ export function AuthPhoneClient(props: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
       onClick={handleBackdropClick}
     >
-      <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950/95 p-5 shadow-2xl">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-950/95 transition-colors">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-semibold text-slate-100">Sign in to neta</div>
-            <p className="mt-1 text-[11px] text-slate-400">
+            <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 transition-colors">Sign in to neta</div>
+            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 transition-colors">
               Phone sign-in is not available in this preview environment.
             </p>
           </div>
           <button
             type="button"
             onClick={close}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-[11px] text-slate-300 hover:bg-slate-800"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-[11px] text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
           >
             ✕
           </button>
         </div>
-        <div className="space-y-2 text-[11px] text-slate-300">
+        <div className="space-y-2 text-[11px] text-slate-600 dark:text-slate-300 transition-colors">
           <p>
             Auth is wired for production with Firebase Phone Auth and invisible reCAPTCHA. In this
             environment, the backend is disabled so you can explore flows without sending SMS.
           </p>
-          <p className="text-slate-400">
+          <p className="text-slate-500 dark:text-slate-400 transition-colors">
             To test real sign-in, configure Firebase credentials and redeploy.
           </p>
         </div>
@@ -179,18 +179,18 @@ export function AuthPhoneClient(props: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
       onClick={handleBackdropClick}
     >
-      <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950/95 p-5 shadow-2xl">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-950/95 transition-colors">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-semibold text-slate-100">Sign in to neta</div>
-            <p className="mt-1 text-[11px] text-slate-400">
+            <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 transition-colors">Sign in to neta</div>
+            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 transition-colors">
               Use your phone number to sign in. We never share your details.
             </p>
           </div>
           <button
             type="button"
             onClick={close}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-[11px] text-slate-300 hover:bg-slate-800"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-[11px] text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
           >
             ✕
           </button>
@@ -199,7 +199,7 @@ export function AuthPhoneClient(props: Props) {
         <div className="space-y-4">
           {step === "phone" && (
             <div className="space-y-3">
-              <label className="block text-xs text-slate-300">
+              <label className="block text-xs text-slate-600 dark:text-slate-300 transition-colors">
                 Phone number
                 <input
                   type="tel"
@@ -207,14 +207,14 @@ export function AuthPhoneClient(props: Props) {
                   placeholder="+91 98765 43210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-amber-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 transition-colors"
                 />
               </label>
               <button
                 type="button"
                 onClick={startPhoneSignIn}
                 disabled={loading}
-                className="flex w-full items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-300 disabled:opacity-60"
+                className="flex w-full items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-300 disabled:opacity-60 transition-colors"
               >
                 {loading ? "Sending OTP..." : "Send OTP"}
               </button>
@@ -223,7 +223,7 @@ export function AuthPhoneClient(props: Props) {
 
           {step === "otp" && (
             <div className="space-y-3">
-              <label className="block text-xs text-slate-300">
+              <label className="block text-xs text-slate-600 dark:text-slate-300 transition-colors">
                 Enter OTP
                 <input
                   type="text"
@@ -231,14 +231,14 @@ export function AuthPhoneClient(props: Props) {
                   maxLength={6}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-amber-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 transition-colors"
                 />
               </label>
               <button
                 type="button"
                 onClick={verifyOtp}
                 disabled={loading}
-                className="flex w-full items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-300 disabled:opacity-60"
+                className="flex w-full items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-300 disabled:opacity-60 transition-colors"
               >
                 {loading ? "Verifying..." : "Verify and continue"}
               </button>
@@ -246,12 +246,12 @@ export function AuthPhoneClient(props: Props) {
           )}
 
           {error && (
-            <p className="text-xs text-red-400">
+            <p className="text-xs text-red-600 dark:text-red-400 transition-colors">
               {error}
             </p>
           )}
           {message && !error && (
-            <p className="text-xs text-emerald-300">
+            <p className="text-xs text-emerald-600 dark:text-emerald-300 transition-colors">
               {message}
             </p>
           )}

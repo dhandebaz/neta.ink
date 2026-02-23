@@ -108,29 +108,29 @@ export default async function ComplaintsPage({ searchParams }: PageProps) {
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-4xl space-y-6">
         <header className="space-y-3">
-          <h1 className="text-3xl font-semibold text-slate-50 sm:text-4xl">
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-50 sm:text-4xl">
             Complaints — {stateDisplayName} (India-wide soon)
           </h1>
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             File civic complaints for {stateDisplayName} that reach the right civic bodies. neta is
             wired for India-wide rollout, starting with Delhi.
           </p>
         </header>
 
         {dataError && (
-          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-100">
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-700 dark:text-red-200">
             {dataError}
           </div>
         )}
 
         {!dataError && stateWarning && (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-100">
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-100">
             {stateWarning}
           </div>
         )}
 
         {!dataError && !complaintsEnabled && (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-100">
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-100">
             Complaints filing is currently unavailable for {stateDisplayName}. Existing public
             complaints remain visible below.
           </div>

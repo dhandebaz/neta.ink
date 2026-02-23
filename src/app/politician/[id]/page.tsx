@@ -84,7 +84,7 @@ export default async function PoliticianPage({ params }: PageProps) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="w-full max-w-xl space-y-2 text-center">
-          <h1 className="text-2xl font-semibold text-slate-50">Politician</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">Politician</h1>
           <p className="text-sm text-red-400">Invalid politician id.</p>
         </div>
       </div>
@@ -184,7 +184,7 @@ export default async function PoliticianPage({ params }: PageProps) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="w-full max-w-xl space-y-2 text-center">
-          <h1 className="text-2xl font-semibold text-slate-50">Politician</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">Politician</h1>
           <p className="text-sm text-red-400">
             Politician not found or this profile is temporarily unavailable.
           </p>
@@ -253,8 +253,8 @@ export default async function PoliticianPage({ params }: PageProps) {
     <div className="space-y-6">
       <div className="w-full max-w-3xl space-y-6">
         <header className="space-y-2">
-          <h1 className="text-3xl font-semibold text-slate-50">{politician.name}</h1>
-          <p className="text-sm text-slate-300">
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-50">{politician.name}</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             {politician.position}{" "}
             {constituencyName ? `· ${constituencyName}` : null}{" "}
             {stateRow ? `· ${stateRow.name}` : null}
@@ -262,23 +262,23 @@ export default async function PoliticianPage({ params }: PageProps) {
         </header>
 
         <section className="grid gap-4 md:grid-cols-[1.5fr,1fr]">
-          <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-sm text-slate-100">
+          <div className="space-y-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4 text-sm text-slate-800 dark:text-slate-100">
             <div>
-              <div className="font-semibold text-slate-200">Party</div>
-              <div className="text-slate-100">{politician.party ?? "Not specified"}</div>
+              <div className="font-semibold text-slate-600 dark:text-slate-200">Party</div>
+              <div className="text-slate-900 dark:text-slate-100">{politician.party ?? "Not specified"}</div>
             </div>
             <div>
-              <div className="font-semibold text-slate-200">Criminal cases</div>
-              <div className="text-slate-100">{politician.criminal_cases ?? 0}</div>
+              <div className="font-semibold text-slate-600 dark:text-slate-200">Criminal cases</div>
+              <div className="text-slate-900 dark:text-slate-100">{politician.criminal_cases ?? 0}</div>
             </div>
             <div>
-              <div className="font-semibold text-slate-200">Assets</div>
-              <div className="text-slate-100">
+              <div className="font-semibold text-slate-600 dark:text-slate-200">Assets</div>
+              <div className="text-slate-900 dark:text-slate-100">
                 ₹ {formatCrores(politician.assets_worth)} crore
               </div>
             </div>
             <div>
-              <div className="font-semibold text-slate-200">Rating</div>
+              <div className="font-semibold text-slate-600 dark:text-slate-200">Rating</div>
               <VotingClient
                 politicianId={politician.id}
                 initialVotesUp={politician.votes_up}
@@ -291,10 +291,10 @@ export default async function PoliticianPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-900/70 p-4 text-sm text-slate-100">
+          <div className="space-y-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4 text-sm text-slate-800 dark:text-slate-100">
             <div>
-              <div className="font-semibold text-slate-200">Citizen activity</div>
-              <div className="text-slate-100">
+              <div className="font-semibold text-slate-600 dark:text-slate-200">Citizen activity</div>
+              <div className="text-slate-900 dark:text-slate-100">
                 {complaintsLabel} · {rtisLabel}
               </div>
             </div>
@@ -317,14 +317,14 @@ export default async function PoliticianPage({ params }: PageProps) {
           </div>
         </section>
 
-        <section className="space-y-3 rounded-lg border border-slate-800 bg-slate-900/70 p-4">
+        <section className="space-y-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 p-4">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-base font-semibold text-slate-50">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50">
               Latest Updates &amp; Mentions
             </h2>
           </div>
           {mentions.length === 0 ? (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               No recent updates tracked. Our AI agents sweep for news periodically.
             </p>
           ) : (
@@ -333,15 +333,15 @@ export default async function PoliticianPage({ params }: PageProps) {
                 const sentiment = (m.sentiment ?? "neutral").toLowerCase();
                 let sentimentLabel = "Neutral";
                 let sentimentClass =
-                  "bg-slate-800 text-slate-200 border border-slate-700";
+                  "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700";
                 if (sentiment === "positive") {
                   sentimentLabel = "Positive";
                   sentimentClass =
-                    "bg-emerald-500/10 text-emerald-300 border border-emerald-500/50";
+                    "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/50";
                 } else if (sentiment === "negative") {
                   sentimentLabel = "Negative";
                   sentimentClass =
-                    "bg-rose-500/10 text-rose-300 border border-rose-500/50";
+                    "bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/50";
                 }
 
                 const publishedLabel = m.published_at
@@ -354,7 +354,7 @@ export default async function PoliticianPage({ params }: PageProps) {
                     href={m.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="block rounded-2xl border border-slate-800 bg-slate-950/70 p-3 transition hover:border-amber-400/70 hover:bg-slate-900"
+                    className="block rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/70 p-3 transition hover:border-amber-400/70 hover:bg-slate-100 dark:hover:bg-slate-900"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span
@@ -363,15 +363,15 @@ export default async function PoliticianPage({ params }: PageProps) {
                         {sentimentLabel}
                       </span>
                       {publishedLabel && (
-                        <span className="text-[11px] text-slate-400">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
                           {publishedLabel}
                         </span>
                       )}
                     </div>
-                    <div className="mt-2 text-sm font-semibold text-slate-50">
+                    <div className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-50">
                       {m.title}
                     </div>
-                    <p className="mt-1 line-clamp-3 text-xs text-slate-400">
+                    <p className="mt-1 line-clamp-3 text-xs text-slate-500 dark:text-slate-400">
                       {m.snippet}
                     </p>
                   </a>
@@ -381,11 +381,11 @@ export default async function PoliticianPage({ params }: PageProps) {
           )}
         </section>
 
-        <section className="space-y-1 text-xs text-slate-400">
+        <section className="space-y-1 text-xs text-slate-500 dark:text-slate-400">
           {politician.myneta_url && (
             <div>
               MyNeta:{" "}
-              <a href={politician.myneta_url} className="text-amber-300 hover:underline">
+              <a href={politician.myneta_url} className="text-amber-600 dark:text-amber-300 hover:underline">
                 {politician.myneta_url}
               </a>
             </div>
@@ -393,7 +393,7 @@ export default async function PoliticianPage({ params }: PageProps) {
           {politician.wikipedia_url && (
             <div>
               Wikipedia:{" "}
-              <a href={politician.wikipedia_url} className="text-amber-300 hover:underline">
+              <a href={politician.wikipedia_url} className="text-amber-600 dark:text-amber-300 hover:underline">
                 {politician.wikipedia_url}
               </a>
             </div>

@@ -95,31 +95,31 @@ export function StateOnboardingClient(props: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 dark:bg-black/70 px-4"
       onClick={handleBackdropClick}
     >
-      <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950/95 p-5 shadow-2xl">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/95 p-5 shadow-2xl">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-semibold text-slate-100">Choose your state</div>
-            <p className="mt-1 text-[11px] text-slate-400">
+            <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">Choose your state</div>
+            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
               This helps neta personalise RTIs and complaints for where you live.
             </p>
           </div>
           <button
             type="button"
             onClick={close}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-[11px] text-slate-300 hover:bg-slate-800"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             ✕
           </button>
         </div>
 
         <div className="space-y-4">
-          <label className="block text-xs text-slate-300">
+          <label className="block text-xs text-slate-600 dark:text-slate-300">
             State or Union Territory
             <select
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
+              className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:border-amber-400"
               value={stateCode}
               onChange={(e) => setStateCode(e.target.value)}
             >
@@ -136,12 +136,12 @@ export function StateOnboardingClient(props: Props) {
           </label>
 
           {error && (
-            <p className="text-xs text-red-400">
+            <p className="text-xs text-red-600 dark:text-red-400">
               {error}
             </p>
           )}
           {message && !error && (
-            <p className="text-xs text-emerald-300">
+            <p className="text-xs text-emerald-700 dark:text-emerald-300">
               {message}
             </p>
           )}

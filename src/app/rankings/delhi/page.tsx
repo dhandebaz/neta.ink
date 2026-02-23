@@ -32,17 +32,17 @@ export default async function DelhiRankingsPage() {
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-5xl space-y-6">
         <header className="space-y-3 text-center">
-          <h1 className="text-3xl font-bold text-slate-50">Delhi Politicians – Worst to Best</h1>
-          <p className="text-sm text-slate-300">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">Delhi Politicians – Worst to Best</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             Experimental ranking of Delhi MPs and MLAs by cases, assets and citizen votes.
           </p>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Lower scores are worse. Use this as a directional civic signal, not a legal verdict.
           </p>
           <p className="text-xs">
             <Link
               href="/politicians/delhi"
-              className="inline-flex items-center justify-center rounded-full border border-slate-600 bg-slate-900/80 px-3 py-1 text-[11px] font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
+              className="inline-flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900/80 px-3 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-100 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-200"
             >
               View as raw list
             </Link>
@@ -50,21 +50,21 @@ export default async function DelhiRankingsPage() {
         </header>
 
         {rows.length === 0 ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 text-center text-sm text-slate-300">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 p-4 text-center text-sm text-slate-600 dark:text-slate-300">
             No Delhi politicians found in the database yet. Once Delhi data is seeded, rankings
             will appear here automatically.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/80">
-            <div className="border-b border-slate-800/80 bg-slate-900/80 px-4 py-3 text-left text-xs text-slate-300">
-              <span className="font-semibold text-slate-100">Rankings snapshot</span>
+          <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80">
+            <div className="border-b border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/80 px-4 py-3 text-left text-xs text-slate-600 dark:text-slate-300">
+              <span className="font-semibold text-slate-900 dark:text-slate-100">Rankings snapshot</span>
               <span className="ml-2 text-slate-500">
                 {rows.length} politicians · lower score = worse overall record
               </span>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-xs sm:text-sm">
-                <thead className="bg-slate-900/80 text-slate-300">
+                <thead className="bg-slate-50 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300">
                   <tr>
                     <th className="px-3 py-2 text-left font-medium">Rank</th>
                     <th className="px-3 py-2 text-left font-medium">Name</th>
@@ -87,23 +87,23 @@ export default async function DelhiRankingsPage() {
                       rank === 1
                         ? "bg-amber-400 text-slate-950"
                         : rank === 2
-                        ? "bg-slate-800 text-amber-200"
+                        ? "bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-amber-200"
                         : rank === 3
-                        ? "bg-slate-800 text-slate-100"
-                        : "bg-slate-900 text-slate-300";
+                        ? "bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
+                        : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300";
 
                     const positionBadgeClass =
                       row.position === "MP"
-                        ? "bg-indigo-500/20 text-indigo-200 border-indigo-500/40"
-                        : "bg-emerald-500/20 text-emerald-200 border-emerald-500/40";
+                        ? "bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-200 border-indigo-500/40"
+                        : "bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-200 border-emerald-500/40";
 
                     const rowBgClass = isTop
-                      ? "bg-slate-900/80"
+                      ? "bg-slate-50 dark:bg-slate-900/80"
                       : isBottom
-                      ? "bg-red-950/40"
+                      ? "bg-red-50 dark:bg-red-950/40"
                       : index % 2 === 0
-                      ? "bg-slate-950"
-                      : "bg-slate-950/80";
+                      ? "bg-white dark:bg-slate-950"
+                      : "bg-slate-50 dark:bg-slate-950/80";
 
                     const totalVotes = row.votes_up + row.votes_down;
 
@@ -119,11 +119,11 @@ export default async function DelhiRankingsPage() {
                         <td className="px-3 py-2 align-top">
                           <a
                             href={`/politician/${row.id}`}
-                            className="text-sm font-medium text-amber-200 hover:underline"
+                            className="text-sm font-medium text-amber-600 dark:text-amber-200 hover:underline"
                           >
                             {row.name}
                           </a>
-                          <div className="mt-0.5 text-[11px] text-slate-400">
+                          <div className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
                             {row.constituencyName ?? "Constituency not recorded"}
                           </div>
                         </td>
@@ -134,24 +134,24 @@ export default async function DelhiRankingsPage() {
                             {row.position}
                           </span>
                         </td>
-                        <td className="px-3 py-2 align-top text-xs text-slate-200">
+                        <td className="px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-200">
                           {row.constituencyName ?? "—"}
                         </td>
-                        <td className="px-3 py-2 align-top text-xs text-slate-200">
+                        <td className="px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-200">
                           {row.party ?? "—"}
                         </td>
-                        <td className="px-3 py-2 align-top text-xs text-slate-200">
+                        <td className="px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-200">
                           {row.criminal_cases}
                         </td>
-                        <td className="px-3 py-2 align-top text-xs text-slate-200">
+                        <td className="px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-200">
                           {formatCrores(row.assets_worth)}
                         </td>
-                        <td className="px-3 py-2 align-top text-xs text-slate-200">
-                          <span className="font-medium text-emerald-300">
+                        <td className="px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-200">
+                          <span className="font-medium text-emerald-600 dark:text-emerald-300">
                             {row.votes_up}
                           </span>{" "}
-                          <span className="text-slate-500">/</span>{" "}
-                          <span className="font-medium text-red-300">
+                          <span className="text-slate-400 dark:text-slate-500">/</span>{" "}
+                          <span className="font-medium text-red-600 dark:text-red-300">
                             {row.votes_down}
                           </span>
                           <div className="text-[11px] text-slate-500">
@@ -159,7 +159,7 @@ export default async function DelhiRankingsPage() {
                           </div>
                         </td>
                         <td className="px-3 py-2 align-top">
-                          <span className="inline-flex items-center rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-slate-100">
+                          <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-slate-700 dark:text-slate-100">
                             {row.score.toFixed(2)}
                           </span>
                         </td>

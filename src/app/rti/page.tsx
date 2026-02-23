@@ -154,14 +154,14 @@ export default async function RtiPage({ searchParams }: PageProps) {
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-5xl space-y-6">
         <header className="space-y-3">
-          <div className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-amber-200">
+          <div className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-amber-700 dark:text-amber-200">
             RTI · {stateDisplayName} first
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-slate-50 sm:text-4xl">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 sm:text-4xl">
               Draft RTI applications that actually get read
             </h1>
-            <p className="max-w-2xl text-sm text-slate-300">
+            <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300">
               neta helps you turn questions into RTI applications tuned for {stateDisplayName}{" "}
               departments and representatives. Draft, review, then pay ₹11 to save and file on the
               official RTI portal yourself.
@@ -170,19 +170,19 @@ export default async function RtiPage({ searchParams }: PageProps) {
         </header>
 
         {dataError && (
-          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-100">
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-200">
             {dataError}
           </div>
         )}
 
         {!dataError && stateWarning && (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-100">
             {stateWarning}
           </div>
         )}
 
         {!dataError && !rtiEnabled && (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-100">
             RTI drafting is currently unavailable for {stateDisplayName}. Any existing RTI history
             remains visible below.
           </div>

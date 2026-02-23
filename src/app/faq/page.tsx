@@ -80,10 +80,10 @@ export default function FaqPage() {
   return (
     <main className="space-y-6">
       <section className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-50 sm:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 sm:text-3xl">
           Frequently asked questions
         </h1>
-        <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+        <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300 sm:text-base">
           Straightforward answers about what neta does, what it does not do, and how it works
           today.
         </p>
@@ -92,14 +92,14 @@ export default function FaqPage() {
         {items.map((item) => (
           <details
             key={item.question}
-            className="group rounded-lg border border-slate-800 bg-slate-950/60 px-4 py-3"
+            className="group rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 px-4 py-3"
           >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium text-slate-100">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium text-slate-900 dark:text-slate-100">
               <span>{item.question}</span>
-              <span className="text-xs text-slate-400 group-open:hidden">Show</span>
-              <span className="text-xs text-slate-400 hidden group-open:inline">Hide</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 group-open:hidden">Show</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 hidden group-open:inline">Hide</span>
             </summary>
-            <div className="mt-2 space-y-2 text-sm text-slate-300">
+            <div className="mt-2 space-y-2 text-sm text-slate-600 dark:text-slate-300">
               {item.answer.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}

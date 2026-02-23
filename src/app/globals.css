@@ -9,4 +9,21 @@ body {
 
 body {
   margin: 0;
+  @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300;
+}
+
+/* Custom utility for the shine effect */
+@layer utilities {
+  .animate-shine {
+    animation: shine 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }

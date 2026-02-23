@@ -413,13 +413,13 @@ export function ComplaintClient(props: Props) {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/80">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80">
         <div className="flex w-full items-center justify-between px-4 py-3 text-left sm:px-5">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300">
               File a civic complaint
             </div>
-            <p className="mt-1 text-xs text-slate-300">
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
               Upload a photo, write your complaint, and pay ₹11 to submit. neta can help draft when
               AI is available, but you always control the final text.
             </p>
@@ -427,21 +427,21 @@ export function ComplaintClient(props: Props) {
           <button
             type="button"
             onClick={() => setFileOpen((open) => !open)}
-            className="ml-3 flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-xs text-slate-300 hover:border-amber-400 hover:text-amber-200"
+            className="ml-3 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-xs text-slate-600 dark:text-slate-300 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-200"
           >
             {fileOpen ? "−" : "+"}
           </button>
         </div>
 
         {fileOpen && (
-          <div className="border-t border-slate-800/80 px-4 py-4 text-left sm:px-5 sm:py-5">
+          <div className="border-t border-slate-200 dark:border-slate-800/80 px-4 py-4 text-left sm:px-5 sm:py-5">
             <div className="space-y-4">
               {preselectedPoliticianId && props.politicianSummary && (
-                <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-3 text-xs space-y-1">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-3 text-xs space-y-1">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                     Target representative
                   </div>
-                  <div className="text-xs text-slate-200">
+                  <div className="text-xs text-slate-700 dark:text-slate-200">
                     {props.politicianSummary.name} · {props.politicianSummary.position}
                     {props.politicianSummary.constituencyName
                       ? ` · ${props.politicianSummary.constituencyName}`
@@ -452,25 +452,25 @@ export function ComplaintClient(props: Props) {
               <div className="grid gap-4 md:grid-cols-[1.1fr,0.9fr]">
                 <div className="space-y-3">
                   {user ? (
-                    <div className="text-[11px] text-slate-400">
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
                       Filing as user #{user.id} ({user.state_code})
                     </div>
                   ) : (
-                    <p className="text-[11px] text-red-300">
+                    <p className="text-[11px] text-red-500 dark:text-red-300">
                       You need to sign in before filing a complaint.
                     </p>
                   )}
-                  <label className="block text-xs font-medium text-slate-200">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-200">
                     Location / area in {stateNameLabel}
                     <input
                       type="text"
                       value={locationText}
                       onChange={(e) => setLocationText(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                      className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-400"
                       placeholder="Street, landmark, ward, or locality name"
                     />
                   </label>
-                  <label className="block text-xs font-medium text-slate-200">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-200">
                     Issue photo
                     <input
                       type="file"
@@ -481,7 +481,7 @@ export function ComplaintClient(props: Props) {
                         setPhotoUrl(null);
                         setAnalysis(null);
                       }}
-                      className="mt-1 w-full text-xs text-slate-200 file:mr-3 file:rounded-full file:border-0 file:bg-slate-800 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-100 hover:file:bg-slate-700"
+                      className="mt-1 w-full text-xs text-slate-700 dark:text-slate-200 file:mr-3 file:rounded-full file:border-0 file:bg-slate-100 dark:file:bg-slate-800 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-700 dark:file:text-slate-100 hover:file:bg-slate-200 dark:hover:file:bg-slate-700"
                     />
                   </label>
                   {aiEnabled ? (
@@ -496,7 +496,7 @@ export function ComplaintClient(props: Props) {
                         : "Upload photo and suggest complaint details"}
                     </button>
                   ) : (
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       Automatic suggestions are currently unavailable. You can still fill in the
                       complaint details manually below.
                     </p>
@@ -510,30 +510,30 @@ export function ComplaintClient(props: Props) {
                       alt="Complaint photo"
                       width={640}
                       height={360}
-                      className="w-full max-h-64 rounded-xl border border-slate-700 object-cover"
+                      className="w-full max-h-64 rounded-xl border border-slate-200 dark:border-slate-700 object-cover"
                     />
                   )}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-4 space-y-4">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-4 space-y-4">
                 <div className="space-y-3">
-                  <label className="block text-xs font-medium text-slate-200">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-200">
                     Complaint title
                     <input
                       type="text"
                       value={manualTitle}
                       onChange={(e) => setManualTitle(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                      className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-400"
                       placeholder="Short summary of the issue"
                     />
                   </label>
-                  <label className="block text-xs font-medium text-slate-200">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-200">
                     Department
                     <select
                       value={manualDepartment}
                       onChange={(e) => setManualDepartment(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
+                      className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:border-amber-400"
                     >
                       <option value="">Select a department</option>
                       {departments.map((dept) => (
@@ -543,16 +543,16 @@ export function ComplaintClient(props: Props) {
                       ))}
                     </select>
                   </label>
-                  <label className="block text-xs font-medium text-slate-200">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-200">
                     Complaint description
                     <textarea
                       value={manualDescription}
                       onChange={(e) => setManualDescription(e.target.value)}
-                      className="mt-1 w-full min-h-[120px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                      className="mt-1 w-full min-h-[120px] rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-amber-400"
                       placeholder="Describe what is wrong, where, and since when."
                     />
                   </label>
-                  <label className="block text-xs font-medium text-slate-200">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-200">
                     Severity
                     <select
                       value={manualSeverity}
@@ -561,7 +561,7 @@ export function ComplaintClient(props: Props) {
                           e.target.value === "low" || e.target.value === "high" ? e.target.value : "medium"
                         )
                       }
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
+                      className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:border-amber-400"
                     >
                       <option value="low">Low</option>
                       <option value="medium">Medium</option>
@@ -569,13 +569,13 @@ export function ComplaintClient(props: Props) {
                     </select>
                   </label>
                   {analysis && (
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       AI suggestions filled these fields based on your photo. You can edit anything
                       before submitting.
                     </p>
                   )}
                   {!aiEnabled && (
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       Automatic suggestions are currently unavailable. You can still file a
                       complaint by filling the fields above.
                     </p>
@@ -601,25 +601,25 @@ export function ComplaintClient(props: Props) {
       <div className="space-y-3 text-left">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Public complaints
             </div>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Recent civic issues filed through neta. Personal details are kept private.
             </p>
           </div>
           {publicComplaints.length > 0 && (
-            <div className="text-[11px] text-slate-500">
+            <div className="text-[11px] text-slate-500 dark:text-slate-500">
               {publicComplaints.length} posted
             </div>
           )}
         </div>
 
         {publicLoading && (
-          <p className="text-xs text-slate-400">Loading complaints…</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Loading complaints…</p>
         )}
         {!publicLoading && publicComplaints.length === 0 && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-500">
             No public complaints yet in {stateNameLabel}.
           </p>
         )}
@@ -628,19 +628,19 @@ export function ComplaintClient(props: Props) {
           {publicComplaints.map((c) => (
             <div
               key={c.id}
-              className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950/80 p-3 text-xs text-slate-200"
+              className="flex flex-col justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 p-3 text-xs text-slate-700 dark:text-slate-200"
             >
               <div className="space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <div className="text-sm font-semibold text-slate-50">
+                    <div className="text-sm font-semibold text-slate-900 dark:text-slate-50">
                       {c.title}
                     </div>
-                    <div className="mt-1 text-[11px] text-slate-400">
+                    <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                       {new Date(c.created_at).toLocaleString()} · {c.location_text}
                     </div>
                   </div>
-                  <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-200">
+                  <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-700 dark:text-amber-200">
                     {c.status}
                   </span>
                 </div>
@@ -652,12 +652,12 @@ export function ComplaintClient(props: Props) {
                       alt={c.title}
                       width={640}
                       height={360}
-                      className="w-full max-h-40 rounded-lg border border-slate-800 object-cover"
+                      className="w-full max-h-40 rounded-lg border border-slate-200 dark:border-slate-800 object-cover"
                     />
                   </div>
                 )}
 
-                <div className="text-[11px] text-slate-400">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">
                   Severity: {c.severity}
                 </div>
               </div>
@@ -666,12 +666,12 @@ export function ComplaintClient(props: Props) {
                 {typeof c.politician_id === "number" && c.politician_id > 0 ? (
                   <a
                     href={`/politician/${c.politician_id}`}
-                    className="inline-flex items-center rounded-full border border-slate-700 px-3 py-1 font-medium text-slate-200 hover:border-amber-400 hover:text-amber-200"
+                    className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 font-medium text-slate-700 dark:text-slate-200 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-200"
                   >
                     View representative
                   </a>
                 ) : (
-                  <span className="text-slate-500">Representative auto-routed</span>
+                  <span className="text-slate-500 dark:text-slate-500">Representative auto-routed</span>
                 )}
               </div>
             </div>
@@ -682,17 +682,17 @@ export function ComplaintClient(props: Props) {
       <div className="space-y-3 text-left">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               My complaints
             </div>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               View the complaints you have filed and track their status.
             </p>
           </div>
           <button
             type="button"
             onClick={() => void loadMyComplaints()}
-            className="inline-flex items-center justify-center rounded-full bg-slate-800 px-3 py-1.5 text-[11px] font-medium text-slate-100 hover:bg-slate-700 disabled:opacity-60"
+            className="inline-flex items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 px-3 py-1.5 text-[11px] font-medium text-slate-800 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-60"
             disabled={myLoading}
           >
             {myLoading ? "Loading…" : "Load my complaints"}
@@ -700,7 +700,7 @@ export function ComplaintClient(props: Props) {
         </div>
 
         {myComplaints.length === 0 && !myLoading && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-500">
             No complaints found for this user ID.
           </p>
         )}
@@ -709,14 +709,14 @@ export function ComplaintClient(props: Props) {
           {myComplaints.map((c) => (
             <div
               key={c.id}
-              className="rounded-xl border border-slate-800 bg-slate-950/80 p-3 text-xs text-slate-200"
+              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 p-3 text-xs text-slate-700 dark:text-slate-200"
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="text-sm font-semibold text-slate-50">
+                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-50">
                     {c.title}
                   </div>
-                  <div className="mt-1 text-[11px] text-slate-400">
+                  <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                     {new Date(c.created_at).toLocaleString()} · {c.location_text}
                   </div>
                 </div>
@@ -725,26 +725,26 @@ export function ComplaintClient(props: Props) {
                     Filed &amp; Sent
                   </span>
                 ) : (
-                  <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-200">
+                  <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-700 dark:text-amber-200">
                     {c.status}
                   </span>
                 )}
               </div>
-              <div className="mt-2 text-[11px] text-slate-400">
+              <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
                 Severity: {c.severity}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px]">
                 <button
                   type="button"
                   onClick={() => setSelectedComplaint(c)}
-                  className="inline-flex items-center rounded-full border border-slate-700 px-3 py-1 font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
+                  className="inline-flex items-center rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 font-medium text-slate-700 dark:text-slate-100 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-200"
                 >
                   View full complaint
                 </button>
                 {typeof c.politician_id === "number" && c.politician_id > 0 && (
                   <a
                     href={`/politician/${c.politician_id}`}
-                    className="text-amber-300 hover:text-amber-200"
+                    className="text-amber-600 dark:text-amber-300 hover:text-amber-500 dark:hover:text-amber-200"
                   >
                     View representative
                   </a>
@@ -756,12 +756,12 @@ export function ComplaintClient(props: Props) {
       </div>
 
       {selectedComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 p-4 text-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 dark:bg-black/70 px-4">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 p-4 text-slate-900 dark:text-slate-50">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h2 className="text-lg font-semibold">{selectedComplaint.title}</h2>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
                   {new Date(selectedComplaint.created_at).toLocaleString()} ·{" "}
                   {selectedComplaint.location_text}
                 </p>
@@ -769,22 +769,22 @@ export function ComplaintClient(props: Props) {
               <button
                 type="button"
                 onClick={() => setSelectedComplaint(null)}
-                className="ml-2 inline-flex items-center justify-center rounded-full border border-slate-600 px-2 py-1 text-[11px] hover:border-amber-400 hover:text-amber-200"
+                className="ml-2 inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-600 px-2 py-1 text-[11px] hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-200"
               >
                 Close
               </button>
             </div>
             <div className="mt-3 space-y-3 text-sm">
-              <div className="text-[11px] text-slate-400">
+              <div className="text-[11px] text-slate-500 dark:text-slate-400">
                 Status: {selectedComplaint.status} · Severity: {selectedComplaint.severity}
               </div>
               {selectedComplaint.department_name && (
-                <div className="text-[11px] text-slate-400">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">
                   Department: {selectedComplaint.department_name}
                 </div>
               )}
               {selectedComplaint.description && (
-                <div className="mt-2 whitespace-pre-line text-sm text-slate-100">
+                <div className="mt-2 whitespace-pre-line text-sm text-slate-800 dark:text-slate-100">
                   {selectedComplaint.description}
                 </div>
               )}
@@ -795,7 +795,7 @@ export function ComplaintClient(props: Props) {
                     alt={selectedComplaint.title}
                     width={640}
                     height={360}
-                    className="w-full max-h-64 rounded-lg border border-slate-700 object-cover"
+                    className="w-full max-h-64 rounded-lg border border-slate-200 dark:border-slate-700 object-cover"
                   />
                 </div>
               )}
@@ -804,7 +804,7 @@ export function ComplaintClient(props: Props) {
                   <div className="mt-3 text-[11px]">
                     <a
                       href={`/politician/${selectedComplaint.politician_id}`}
-                      className="text-amber-300 hover:text-amber-200"
+                      className="text-amber-600 dark:text-amber-300 hover:text-amber-500 dark:hover:text-amber-200"
                     >
                       View representative profile
                     </a>
