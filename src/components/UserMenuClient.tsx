@@ -102,6 +102,12 @@ export function UserMenuClient(props: Props) {
             </button>
           )}
           <Link
+            href="/volunteer"
+            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-emerald-500/70 px-3 text-[11px] font-medium text-emerald-300 hover:bg-emerald-500/20"
+          >
+            Volunteer
+          </Link>
+          <Link
             href="/dashboard"
             className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-slate-600 px-4 text-[11px] font-medium text-slate-100 hover:bg-slate-800"
           >

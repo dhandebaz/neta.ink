@@ -115,6 +115,21 @@ export const users = pgTable("users", {
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const volunteers = pgTable("volunteers", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id")
+    .notNull()
+    .references(() => users.id)
+    .unique(),
+  state_id: integer("state_id")
+    .notNull()
+    .references(() => states.id),
+  constituency_id: integer("constituency_id").references(() => constituencies.id),
+  contribution_points: integer("contribution_points").notNull().default(0),
+  status: text("status").notNull().default("active"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const votes = pgTable(
   "votes",
   {
@@ -245,6 +260,17 @@ export const usage_events = pgTable("usage_events", {
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const civic_tasks = pgTable("civic_tasks", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  points_reward: integer("points_reward").notNull().default(10),
+  state_id: integer("state_id").references(() => states.id),
+  assigned_to: integer("assigned_to").references(() => volunteers.id),
+  status: text("status").notNull().default("open"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const system_settings = pgTable("system_settings", {
   id: serial("id").primaryKey(),
   key: text("key").notNull().unique(),
@@ -281,8 +307,10 @@ export const statesRelations = relations(states, ({ many }) => ({
   civic_bodies: many(civic_bodies),
   civic_officials: many(civic_officials),
   users: many(users),
+  volunteers: many(volunteers),
   complaints: many(complaints),
-  rti_requests: many(rti_requests)
+  rti_requests: many(rti_requests),
+  civic_tasks: many(civic_tasks)
 }));
 
 export const constituenciesRelations = relations(constituencies, ({ one, many }) => ({
@@ -340,6 +368,22 @@ export const civicOfficialsRelations = relations(civic_officials, ({ one }) => (
   })
 }));
 
+export const volunteersRelations = relations(volunteers, ({ one, many }) => ({
+  user: one(users, {
+    fields: [volunteers.user_id],
+    references: [users.id]
+  }),
+  state: one(states, {
+    fields: [volunteers.state_id],
+    references: [states.id]
+  }),
+  constituency: one(constituencies, {
+    fields: [volunteers.constituency_id],
+    references: [constituencies.id]
+  }),
+  tasks: many(civic_tasks)
+}));
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   state: one(states, {
     fields: [users.state_code],
@@ -349,7 +393,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   rti_requests: many(rti_requests),
   payments: many(payments),
   task_usage: many(task_usage),
-  votes: many(votes)
+  votes: many(votes),
+  volunteer: one(volunteers, {
+    fields: [users.id],
+    references: [volunteers.user_id]
+  })
 }));
 
 export const votesRelations = relations(votes, ({ one }) => ({
@@ -420,6 +468,17 @@ export const taskUsageRelations = relations(task_usage, ({ one }) => ({
   })
 }));
 
+export const civicTasksRelations = relations(civic_tasks, ({ one }) => ({
+  state: one(states, {
+    fields: [civic_tasks.state_id],
+    references: [states.id]
+  }),
+  volunteer: one(volunteers, {
+    fields: [civic_tasks.assigned_to],
+    references: [volunteers.id]
+  })
+}));
+
 export type State = InferSelectModel<typeof states>;
 export type NewState = InferInsertModel<typeof states>;
 
@@ -438,6 +497,9 @@ export type NewCivicOfficial = InferInsertModel<typeof civic_officials>;
 export type User = InferSelectModel<typeof users>;
 export type NewUser = InferInsertModel<typeof users>;
 
+export type Volunteer = InferSelectModel<typeof volunteers>;
+export type NewVolunteer = InferInsertModel<typeof volunteers>;
+
 export type Vote = InferSelectModel<typeof votes>;
 export type NewVote = InferInsertModel<typeof votes>;
 
@@ -455,6 +517,9 @@ export type NewPayment = InferInsertModel<typeof payments>;
 
 export type TaskUsage = InferSelectModel<typeof task_usage>;
 export type NewTaskUsage = InferInsertModel<typeof task_usage>;
+
+export type CivicTask = InferSelectModel<typeof civic_tasks>;
+export type NewCivicTask = InferInsertModel<typeof civic_tasks>;
 
 export type UsageEvent = InferSelectModel<typeof usage_events>;
 export type NewUsageEvent = InferInsertModel<typeof usage_events>;
