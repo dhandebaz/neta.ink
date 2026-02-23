@@ -86,8 +86,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
         await tx
           .update(votes)
           .set({
-            vote_type: voteType,
-            updated_at: new Date()
+            vote_type: voteType
           })
           .where(eq(votes.id, existingVote.id));
       } else {
