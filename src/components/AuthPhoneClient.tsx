@@ -74,9 +74,23 @@ export function AuthPhoneClient(props: Props) {
       setConfirmation(result);
       setStep("otp");
       setMessage("OTP sent. Please check your phone.");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Phone sign-in error:", err);
-      setError("Could not send OTP. Please try again.");
+      
+      if (err.code === "auth/network-request-failed") {
+        setError("Network error. Check your connection or try disabling ad-blockers.");
+      } else if (err.code === "auth/captcha-check-failed") {
+        setError("reCAPTCHA check failed. Please try again.");
+      } else if (err.code === "auth/invalid-phone-number") {
+        setError("Invalid phone number format.");
+      } else if (err.message && err.message.includes("requests from this domain")) {
+        setError("This domain is not authorized in Firebase Console.");
+      } else if (err.message) {
+        // Strip technical prefixes if possible, or show full message for debugging
+        setError(err.message.replace("Firebase: ", "").replace(" (auth/internal-error)", ""));
+      } else {
+        setError("Could not send OTP. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
