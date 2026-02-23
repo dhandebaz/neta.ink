@@ -1,7 +1,8 @@
-"use client";
+ "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthPhoneClient } from "./AuthPhoneClient";
+import { StateOnboardingClient } from "./StateOnboardingClient";
 
 type UserSummary = {
   id: number;
@@ -17,6 +18,7 @@ type Props = {
 
 export function UserMenuClient(props: Props) {
   const [showAuth, setShowAuth] = useState(false);
+  const [showStateModal, setShowStateModal] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
   const openAuth = () => {
@@ -29,6 +31,12 @@ export function UserMenuClient(props: Props) {
 
   const handleSignedIn = () => {
     setShowAuth(false);
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem("neta_recent_signin", "1");
+      } catch {
+      }
+    }
     window.location.reload();
   };
 
@@ -45,6 +53,23 @@ export function UserMenuClient(props: Props) {
   };
 
   const user = props.user;
+  const userId = user?.id ?? null;
+
+  useEffect(() => {
+    if (!userId) return;
+    if (typeof window === "undefined") return;
+
+    try {
+      const recent = window.localStorage.getItem("neta_recent_signin");
+      const onboarded = window.localStorage.getItem("neta_state_onboarded");
+
+      if (recent === "1" && !onboarded) {
+        setShowStateModal(true);
+        window.localStorage.removeItem("neta_recent_signin");
+      }
+    } catch {
+    }
+  }, [userId]);
 
   let label = "Sign in";
   if (user) {
@@ -57,6 +82,8 @@ export function UserMenuClient(props: Props) {
     }
   }
 
+  const stateLabel = user ? user.state_code : null;
+
   return (
     <>
       {user ? (
@@ -64,6 +91,15 @@ export function UserMenuClient(props: Props) {
           <span className="text-xs text-slate-200">
             {label}
           </span>
+          {stateLabel && (
+            <button
+              type="button"
+              onClick={() => setShowStateModal(true)}
+              className="inline-flex items-center justify-center rounded-full border border-slate-600 px-2 py-0.5 text-[11px] font-medium text-slate-100 hover:bg-slate-800"
+            >
+              {stateLabel}
+            </button>
+          )}
           <button
             type="button"
             onClick={signOut}
@@ -86,7 +122,13 @@ export function UserMenuClient(props: Props) {
       {showAuth && (
         <AuthPhoneClient onClose={closeAuth} onSignedIn={handleSignedIn} />
       )}
+
+      {user && showStateModal && (
+        <StateOnboardingClient
+          initialStateCode={user.state_code}
+          onClose={() => setShowStateModal(false)}
+        />
+      )}
     </>
   );
 }
-

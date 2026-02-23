@@ -1,6 +1,6 @@
 import { db } from "@/db/client";
-import { states, system_settings, type State } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { state_settings, states, system_settings, type State } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
 
 export const INDIAN_STATES = [
   { code: "DL", name: "Delhi" },
@@ -79,6 +79,35 @@ export async function getStateByCode(code: string): Promise<State | null> {
   return rows[0];
 }
 
+export async function getUserOrDefaultState(user: {
+  state_code: string | null;
+} | null): Promise<{ code: string; name: string }> {
+  const fallbackCode = "DL";
+
+  const rawCode = user?.state_code;
+  const desiredCode =
+    rawCode && rawCode.trim().length === 2 ? rawCode.trim().toUpperCase() : fallbackCode;
+
+  const byUserCode = await getStateByCode(desiredCode);
+  if (byUserCode) {
+    return { code: byUserCode.code, name: byUserCode.name };
+  }
+
+  const byFallbackCode = await getStateByCode(fallbackCode);
+  if (byFallbackCode) {
+    return { code: byFallbackCode.code, name: byFallbackCode.name };
+  }
+
+  const fromStatic =
+    INDIAN_STATES.find((s) => s.code === desiredCode) ??
+    INDIAN_STATES.find((s) => s.code === fallbackCode);
+
+  return {
+    code: fromStatic?.code ?? desiredCode,
+    name: fromStatic?.name ?? "Delhi"
+  };
+}
+
 export async function getFeatureFlagBoolean(
   key: string,
   defaultValue: boolean
@@ -104,4 +133,79 @@ export async function getFeatureFlagBoolean(
   }
 
   return defaultValue;
+}
+
+export async function getStateAndGlobalFeatureFlagBoolean(
+  stateCode: string,
+  baseKey: string,
+  defaultValue: boolean
+): Promise<boolean> {
+  const code = stateCode.toUpperCase().trim();
+  const stateKey = `${baseKey}_${code}`;
+  const globalKey = `${baseKey}_global`;
+
+  const stateRows = await db
+    .select()
+    .from(state_settings)
+    .where(and(eq(state_settings.state_code, code), eq(state_settings.key, stateKey)))
+    .limit(1);
+
+  if (stateRows.length > 0) {
+    const raw = stateRows[0].value.toLowerCase();
+
+    if (raw === "true" || raw === "1" || raw === "yes" || raw === "on") {
+      return true;
+    }
+
+    if (raw === "false" || raw === "0" || raw === "no" || raw === "off") {
+      return false;
+    }
+  }
+
+  const systemRows = await db
+    .select()
+    .from(system_settings)
+    .where(eq(system_settings.key, stateKey))
+    .limit(1);
+
+  if (systemRows.length > 0) {
+    const raw = systemRows[0].value.toLowerCase();
+
+    if (raw === "true" || raw === "1" || raw === "yes" || raw === "on") {
+      return true;
+    }
+
+    if (raw === "false" || raw === "0" || raw === "no" || raw === "off") {
+      return false;
+    }
+  }
+
+  const globalRows = await db
+    .select()
+    .from(system_settings)
+    .where(eq(system_settings.key, globalKey))
+    .limit(1);
+
+  if (globalRows.length > 0) {
+    const raw = globalRows[0].value.toLowerCase();
+
+    if (raw === "true" || raw === "1" || raw === "yes" || raw === "on") {
+      return true;
+    }
+
+    if (raw === "false" || raw === "0" || raw === "no" || raw === "off") {
+      return false;
+    }
+  }
+
+  return defaultValue;
+}
+
+export async function getActiveStates(): Promise<State[]> {
+  const rows = await db
+    .select()
+    .from(states)
+    .where(and(eq(states.is_enabled, true), eq(states.ingestion_status, "ready")));
+
+  return rows;
 }

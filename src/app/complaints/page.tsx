@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { ComplaintClient } from "./ComplaintClient";
-import { getFeatureFlagBoolean } from "@/lib/states";
+import { db } from "@/db/client";
+import { states } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { getCurrentUser } from "@/lib/auth/session";
+import { getStateAndGlobalFeatureFlagBoolean, getUserOrDefaultState } from "@/lib/states";
+import { isAiComplaintsEnabled } from "@/lib/ai/flags";
 
 export const metadata: Metadata = {
   title: "Complaints — Delhi (India-wide soon) · neta",
@@ -29,6 +34,9 @@ export default async function ComplaintsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
 
   let complaintsEnabled = false;
+  let aiComplaintsEnabled = true;
+  let stateWarning: string | null = null;
+  let stateDisplayName = "Delhi";
   let politicianId: number | undefined;
   let selectedPoliticianSummary:
     | {
@@ -41,15 +49,46 @@ export default async function ComplaintsPage({ searchParams }: PageProps) {
   let dataError: string | null = null;
 
   try {
-    const complaintsEnabledGlobal = await getFeatureFlagBoolean(
-      "complaints_enabled_global",
+    const currentUser = await getCurrentUser();
+
+    const stateCodeParam =
+      typeof params.state === "string" ? params.state.toUpperCase() : undefined;
+    let effectiveStateCode: string;
+
+    if (stateCodeParam && stateCodeParam.length === 2) {
+      effectiveStateCode = stateCodeParam;
+    } else if (currentUser) {
+      const userState = await getUserOrDefaultState({
+        state_code: currentUser.state_code
+      });
+      effectiveStateCode = userState.code;
+    } else {
+      effectiveStateCode = "DL";
+    }
+
+    const [stateRow] = await db
+      .select()
+      .from(states)
+      .where(eq(states.code, effectiveStateCode))
+      .limit(1);
+
+    if (stateRow) {
+      stateDisplayName = stateRow.name;
+
+      if (stateRow.is_enabled && stateRow.ingestion_status !== "ready") {
+        stateWarning = `We\u2019re still setting up data for ${stateRow.name}. Some features may be limited.`;
+      }
+    } else {
+      stateDisplayName = effectiveStateCode === "DL" ? "Delhi" : "this state";
+    }
+
+    complaintsEnabled = await getStateAndGlobalFeatureFlagBoolean(
+      effectiveStateCode,
+      "complaints_enabled",
       true
     );
-    const complaintsEnabledDelhi = await getFeatureFlagBoolean(
-      "complaints_enabled_DL",
-      true
-    );
-    complaintsEnabled = complaintsEnabledGlobal && complaintsEnabledDelhi;
+
+    aiComplaintsEnabled = await isAiComplaintsEnabled();
 
     const rawPoliticianId =
       typeof params.politicianId === "string" ? params.politicianId : undefined;
@@ -70,11 +109,11 @@ export default async function ComplaintsPage({ searchParams }: PageProps) {
       <div className="w-full max-w-4xl space-y-6">
         <header className="space-y-3">
           <h1 className="text-3xl font-semibold text-slate-50 sm:text-4xl">
-            Complaints — Delhi (India-wide soon)
+            Complaints — {stateDisplayName} (India-wide soon)
           </h1>
           <p className="text-sm text-slate-300">
-            File civic complaints for Delhi that reach the right civic bodies. neta is wired for
-            India-wide rollout, starting with Delhi.
+            File civic complaints for {stateDisplayName} that reach the right civic bodies. neta is
+            wired for India-wide rollout, starting with Delhi.
           </p>
         </header>
 
@@ -84,10 +123,16 @@ export default async function ComplaintsPage({ searchParams }: PageProps) {
           </div>
         )}
 
+        {!dataError && stateWarning && (
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-100">
+            {stateWarning}
+          </div>
+        )}
+
         {!dataError && !complaintsEnabled && (
           <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-100">
-            Complaints filing is currently unavailable for Delhi. Existing public complaints remain
-            visible below.
+            Complaints filing is currently unavailable for {stateDisplayName}. Existing public
+            complaints remain visible below.
           </div>
         )}
 
@@ -95,6 +140,8 @@ export default async function ComplaintsPage({ searchParams }: PageProps) {
           politicianId={politicianId}
           politicianSummary={selectedPoliticianSummary}
           complaintsEnabled={complaintsEnabled && !dataError}
+          aiComplaintsEnabled={aiComplaintsEnabled}
+          stateDisplayName={stateDisplayName}
         />
       </div>
     </main>

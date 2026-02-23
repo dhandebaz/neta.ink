@@ -7,6 +7,8 @@ import { DelhiSearchClient } from "./DelhiSearchClient";
 type Props = {
   delhiReady: boolean;
   delhiStatusMessage: string | null;
+  liveStateCodes: string[];
+  initialStateCode?: string;
 };
 
 type WaitlistState = {
@@ -15,8 +17,17 @@ type WaitlistState = {
   error: string | null;
 };
 
-export function HomeStateSearchClient({ delhiReady, delhiStatusMessage }: Props) {
-  const [selectedStateCode, setSelectedStateCode] = useState<string>("DL");
+export function HomeStateSearchClient({
+  delhiReady,
+  delhiStatusMessage,
+  liveStateCodes,
+  initialStateCode
+}: Props) {
+  const [selectedStateCode, setSelectedStateCode] = useState<string>(
+    initialStateCode && initialStateCode.trim().length === 2
+      ? initialStateCode.trim().toUpperCase()
+      : "DL"
+  );
   const [contact, setContact] = useState("");
   const [waitlistState, setWaitlistState] = useState<WaitlistState>({
     loading: false,
@@ -28,6 +39,7 @@ export function HomeStateSearchClient({ delhiReady, delhiStatusMessage }: Props)
     INDIAN_STATES.find((s) => s.code === selectedStateCode) ?? INDIAN_STATES[0];
 
   const isDelhi = selectedState.code === "DL";
+  const isLive = liveStateCodes.includes(selectedState.code);
 
   async function submitWaitlist() {
     setWaitlistState({ loading: true, message: null, error: null });
@@ -113,6 +125,9 @@ export function HomeStateSearchClient({ delhiReady, delhiStatusMessage }: Props)
               </option>
             ))}
           </select>
+          <div className="text-[11px] text-slate-400">
+            {isLive ? "Status: Live" : "Status: Coming soon"}
+          </div>
         </div>
       </div>
 
@@ -135,37 +150,46 @@ export function HomeStateSearchClient({ delhiReady, delhiStatusMessage }: Props)
         </div>
       ) : (
         <div className="space-y-4">
-          <p className="text-xs text-slate-300 sm:text-sm">
-            We&apos;re rolling out neta state-by-state. Delhi is live; select your state to join the
-            waitlist and be notified when RTIs, complaints, and rankings go live for{" "}
-            {selectedState.name}.
-          </p>
+          {isLive ? (
+            <p className="text-xs text-slate-300 sm:text-sm">
+              We are live in {selectedState.name} for browsing and discovery. Complaints and RTIs
+              are being rolled out gradually and may not be available in every workflow yet.
+            </p>
+          ) : (
+            <>
+              <p className="text-xs text-slate-300 sm:text-sm">
+                We&apos;re rolling out neta state-by-state. Select your state to join the waitlist
+                and be notified when RTIs, complaints, and rankings go live for{" "}
+                {selectedState.name}.
+              </p>
 
-          <div className="space-y-2 sm:flex sm:items-center sm:gap-3 sm:space-y-0">
-            <input
-              type="text"
-              className="min-h-[44px] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 text-sm text-slate-100 placeholder:text-slate-500"
-              placeholder="Email or phone number"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-            />
-            <button
-              type="button"
-              onClick={() => void submitWaitlist()}
-              className="mt-2 inline-flex min-h-[44px] items-center justify-center rounded-full bg-amber-400 px-4 text-sm font-medium text-slate-950 shadow hover:bg-amber-300 sm:mt-0"
-              disabled={waitlistState.loading}
-            >
-              {waitlistState.loading
-                ? `Joining waitlist for ${selectedState.name}...`
-                : `Join waitlist for ${selectedState.name}`}
-            </button>
-          </div>
+              <div className="space-y-2 sm:flex sm:items-center sm:gap-3 sm:space-y-0">
+                <input
+                  type="text"
+                  className="min-h-[44px] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 text-sm text-slate-100 placeholder:text-slate-500"
+                  placeholder="Email or phone number"
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => void submitWaitlist()}
+                  className="mt-2 inline-flex min-h-[44px] items-center justify-center rounded-full bg-amber-400 px-4 text-sm font-medium text-slate-950 shadow hover:bg-amber-300 sm:mt-0"
+                  disabled={waitlistState.loading}
+                >
+                  {waitlistState.loading
+                    ? `Joining waitlist for ${selectedState.name}...`
+                    : `Join waitlist for ${selectedState.name}`}
+                </button>
+              </div>
 
-          {waitlistState.error && (
-            <p className="text-xs text-red-400">{waitlistState.error}</p>
-          )}
-          {waitlistState.message && (
-            <p className="text-xs text-emerald-300">{waitlistState.message}</p>
+              {waitlistState.error && (
+                <p className="text-xs text-red-400">{waitlistState.error}</p>
+              )}
+              {waitlistState.message && (
+                <p className="text-xs text-emerald-300">{waitlistState.message}</p>
+              )}
+            </>
           )}
         </div>
       )}

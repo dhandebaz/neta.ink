@@ -46,9 +46,18 @@ type Props = {
   initialTargetId?: number;
   initialPoliticianSummary?: TargetPoliticianSummary;
   rtiEnabled?: boolean;
+  aiRtiEnabled?: boolean;
+  stateDisplayName?: string;
 };
 
-export function RtiClient({ initialTargetType, initialTargetId, initialPoliticianSummary, rtiEnabled }: Props) {
+export function RtiClient({
+  initialTargetType,
+  initialTargetId,
+  initialPoliticianSummary,
+  rtiEnabled,
+  aiRtiEnabled,
+  stateDisplayName
+}: Props) {
   const [targetType, setTargetType] = useState<TargetType>(
     initialTargetType ?? "DEPT"
   );
@@ -71,6 +80,9 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
 
   const [selectedRti, setSelectedRti] = useState<RtiSummary | null>(null);
   const [user, setUser] = useState<CurrentUserSummary | null>(null);
+
+  const canUseAiDraft = aiRtiEnabled !== false;
+  const stateNameLabel = stateDisplayName || "your state";
 
   useEffect(() => {
     async function loadUser() {
@@ -133,6 +145,13 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
     setError(null);
     setMessage(null);
 
+    if (!canUseAiDraft) {
+      setError(
+        "Automatic drafting is currently unavailable. You can still write your RTI manually."
+      );
+      return;
+    }
+
     if (!question.trim()) {
       setError("Please type your RTI question or information sought.");
       return;
@@ -185,8 +204,13 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
     setError(null);
     setMessage(null);
 
-    if (!rtiText.trim() || !question.trim()) {
-      setError("Generate an RTI draft and ensure both question and body are filled.");
+    if (!question.trim()) {
+      setError("Please fill in the RTI question or summary.");
+      return;
+    }
+
+    if (!rtiText.trim()) {
+      setError("RTI text is required. Write the full RTI body before saving.");
       return;
     }
 
@@ -271,7 +295,7 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
     doc.setFontSize(12);
     const lines = doc.splitTextToSize(rtiText.trim(), 180);
     doc.text(lines, 15, 20);
-    doc.save("rti-draft-delhi.pdf");
+    doc.save("rti-draft.pdf");
   }
 
   return (
@@ -294,7 +318,7 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
               Draft a new RTI
             </div>
             <p className="mt-1 text-xs text-slate-300">
-              Describe what you want to ask under RTI. neta helps you format it for Delhi.
+              Describe what you want to ask under RTI. neta can help draft, but you always control the final text.
             </p>
           </div>
           {user && (
@@ -314,8 +338,8 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
                   onChange={(e) => setTargetType(e.target.value as TargetType)}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
                 >
-                  <option value="DEPT">Delhi department (PIO, GNCTD)</option>
-                  <option value="MLA">MLA (Delhi Assembly)</option>
+                  <option value="DEPT">State department / PIO</option>
+                  <option value="MLA">MLA (State Assembly)</option>
                   <option value="MP">MP (Lok Sabha)</option>
                 </select>
               </label>
@@ -364,95 +388,102 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
                   placeholder="Describe clearly what information you want under RTI."
                 />
               </label>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => void handleGenerateDraft()}
-            className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
-            disabled={generating}
-          >
-            {generating ? "Generating draft..." : "Generate RTI draft"}
-          </button>
-        </div>
-      </section>
-
-      {draft && (
-        <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/80">
-          <div className="border-b border-slate-800/80 px-4 py-3 sm:px-5">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">
-              Draft RTI
-            </div>
-            <p className="mt-1 text-xs text-slate-400">
-              Review and edit the RTI body. You can download a PDF or save and pay.
-            </p>
-          </div>
-
-          <div className="grid gap-4 border-t border-slate-800/80 px-4 py-4 sm:grid-cols-[2fr,1fr] sm:px-5 sm:py-5">
-            <div className="space-y-3">
-              <label className="block text-xs font-medium text-slate-200">
-                RTI body
-                <textarea
-                  value={rtiText}
-                  onChange={(e) => setRtiText(e.target.value)}
-                  className="mt-1 w-full min-h-[220px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
-                />
-              </label>
-            </div>
-            <div className="space-y-3 text-xs text-slate-200">
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                  PIO name
-                </div>
-                <div className="mt-1 text-xs text-slate-200">
-                  {draft.pio_name || "Not specified"}
-                </div>
-              </div>
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                  PIO address
-                </div>
-                <div className="mt-1 whitespace-pre-line text-xs text-slate-200">
-                  {draft.pio_address || "Not specified"}
-                </div>
-              </div>
-              {draft.filing_instructions.length > 0 && (
-                <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                    Filing instructions (Delhi)
-                  </div>
-                  <ul className="mt-1 list-disc list-inside space-y-1 text-xs text-slate-300">
-                    {draft.filing_instructions.map((step, index) => (
-                      <li key={index}>{step}</li>
-                    ))}
-                  </ul>
-                </div>
+              {!canUseAiDraft && (
+                <p className="text-[11px] text-slate-400">
+                  Automatic drafting is currently unavailable. You can still write and submit your
+                  RTI manually.
+                </p>
               )}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3 border-t border-slate-800/80 px-4 py-3 sm:px-5">
-            {rtiEnabled !== false && (
-              <button
-                type="button"
-                onClick={() => void handleCreate()}
-                className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60"
-                disabled={creating}
-              >
-                {creating ? "Saving draft and creating payment..." : "Pay ₹11 & save RTI"}
-              </button>
-            )}
+          {canUseAiDraft && (
             <button
               type="button"
-              onClick={handleDownloadPdf}
-              className="inline-flex items-center justify-center rounded-full border border-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
+              onClick={() => void handleGenerateDraft()}
+              className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
+              disabled={generating}
             >
-              Download RTI PDF
+              {generating ? "Generating draft..." : "Generate RTI draft"}
             </button>
+          )}
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/80">
+        <div className="border-b border-slate-800/80 px-4 py-3 sm:px-5">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+            RTI text
           </div>
-        </section>
-      )}
+          <p className="mt-1 text-xs text-slate-400">
+            Write or edit the full RTI body that will be saved. AI drafts, when available, appear here.
+          </p>
+        </div>
+
+        <div className="grid gap-4 border-t border-slate-800/80 px-4 py-4 sm:grid-cols-[2fr,1fr] sm:px-5 sm:py-5">
+          <div className="space-y-3">
+            <label className="block text-xs font-medium text-slate-200">
+              RTI body
+              <textarea
+                value={rtiText}
+                onChange={(e) => setRtiText(e.target.value)}
+                className="mt-1 w-full min-h-[220px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                placeholder="Write the full RTI application text that you want to file."
+              />
+            </label>
+          </div>
+          <div className="space-y-3 text-xs text-slate-200">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                PIO name
+              </div>
+              <div className="mt-1 text-xs text-slate-200">
+                {draft?.pio_name || "Not specified"}
+              </div>
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                PIO address
+              </div>
+              <div className="mt-1 whitespace-pre-line text-xs text-slate-200">
+                {draft?.pio_address || "Not specified"}
+              </div>
+            </div>
+            {draft && draft.filing_instructions.length > 0 && (
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  Filing instructions
+                </div>
+                <ul className="mt-1 list-disc list-inside space-y-1 text-xs text-slate-300">
+                  {draft.filing_instructions.map((step, index) => (
+                    <li key={index}>{step}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3 border-t border-slate-800/80 px-4 py-3 sm:px-5">
+          {rtiEnabled !== false && (
+            <button
+              type="button"
+              onClick={() => void handleCreate()}
+              className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60"
+              disabled={creating}
+            >
+              {creating ? "Saving draft and creating payment..." : "Pay ₹11 & save RTI"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            className="inline-flex items-center justify-center rounded-full border border-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
+          >
+            Download RTI PDF
+          </button>
+        </div>
+      </section>
 
       <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-4 sm:px-5 sm:py-5">
         <div className="flex items-center justify-between gap-3">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type MouseEvent } from "react";
+import { createPortal } from "react-dom";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth, hasFirebaseConfig } from "@/lib/firebase";
 
@@ -20,6 +21,7 @@ export function AuthPhoneClient(props: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [confirmation, setConfirmation] =
     useState<import("firebase/auth").ConfirmationResult | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (!hasFirebaseConfig) return;
@@ -38,6 +40,10 @@ export function AuthPhoneClient(props: Props) {
     }
   }, []);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const close = () => {
     if (props.onClose) {
       props.onClose();
@@ -48,42 +54,6 @@ export function AuthPhoneClient(props: Props) {
     if (event.target !== event.currentTarget) return;
     close();
   };
-
-  if (!hasFirebaseConfig) {
-    return (
-      <div
-        className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4"
-        onClick={handleBackdropClick}
-      >
-        <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950/95 p-5 shadow-2xl">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <div className="text-sm font-semibold text-slate-100">Sign in to neta</div>
-              <p className="mt-1 text-[11px] text-slate-400">
-                Phone sign-in is not available in this preview environment.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={close}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-[11px] text-slate-300 hover:bg-slate-800"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="space-y-2 text-[11px] text-slate-300">
-            <p>
-              Auth is wired for production with Firebase Phone Auth and invisible reCAPTCHA. In this
-              environment, the backend is disabled so you can explore flows without sending SMS.
-            </p>
-            <p className="text-slate-400">
-              To test real sign-in, configure Firebase credentials and redeploy.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const startPhoneSignIn = async () => {
     setError(null);
@@ -172,9 +142,41 @@ export function AuthPhoneClient(props: Props) {
     }
   };
 
-  return (
+  const content = !hasFirebaseConfig ? (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+      onClick={handleBackdropClick}
+    >
+      <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950/95 p-5 shadow-2xl">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold text-slate-100">Sign in to neta</div>
+            <p className="mt-1 text-[11px] text-slate-400">
+              Phone sign-in is not available in this preview environment.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={close}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-[11px] text-slate-300 hover:bg-slate-800"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="space-y-2 text-[11px] text-slate-300">
+          <p>
+            Auth is wired for production with Firebase Phone Auth and invisible reCAPTCHA. In this
+            environment, the backend is disabled so you can explore flows without sending SMS.
+          </p>
+          <p className="text-slate-400">
+            To test real sign-in, configure Firebase credentials and redeploy.
+          </p>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
       onClick={handleBackdropClick}
     >
       <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950/95 p-5 shadow-2xl">
@@ -259,4 +261,10 @@ export function AuthPhoneClient(props: Props) {
       </div>
     </div>
   );
+
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(content, document.body);
 }

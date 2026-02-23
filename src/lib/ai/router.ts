@@ -13,11 +13,38 @@ export type AiTextResponse = {
   model: AiModel;
 };
 
+export class AiUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AiUnavailableError";
+  }
+}
+
+function isGlobalAiEnabled(): boolean {
+  const raw = process.env.AI_GLOBAL_ENABLED;
+
+  if (!raw) {
+    return true;
+  }
+
+  const value = raw.toLowerCase();
+
+  if (value === "false" || value === "0" || value === "off" || value === "no") {
+    return false;
+  }
+
+  return true;
+}
+
 export async function callGeminiText(request: AiTextRequest): Promise<AiTextResponse> {
+  if (!isGlobalAiEnabled()) {
+    throw new AiUnavailableError("Global AI is disabled");
+  }
+
   const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
 
   if (!apiKey) {
-    throw new Error("Gemini API key is not configured");
+    throw new AiUnavailableError("Gemini API key is not configured");
   }
 
   const temperature = typeof request.temperature === "number" ? request.temperature : 0.3;
@@ -47,10 +74,14 @@ export async function callGeminiText(request: AiTextRequest): Promise<AiTextResp
 }
 
 export async function callHyperbrowserAgent(taskDescription: string): Promise<AiTextResponse> {
+  if (!isGlobalAiEnabled()) {
+    throw new AiUnavailableError("Global AI is disabled");
+  }
+
   const apiKey = process.env.HYPERBROWSER_API_KEY;
 
   if (!apiKey) {
-    throw new Error("HYPERBROWSER_API_KEY is not configured");
+    throw new AiUnavailableError("HYPERBROWSER_API_KEY is not configured");
   }
 
   const response = await fetch("https://api.hyperbrowser.ai/v1/agent", {

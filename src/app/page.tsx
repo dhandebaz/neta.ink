@@ -3,6 +3,8 @@ import Link from "next/link";
 import { db } from "@/db/client";
 import { states } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { getCurrentUser } from "@/lib/auth/session";
+import { getUserOrDefaultState } from "@/lib/states";
 import { HomeStateSearchClient } from "./HomeStateSearchClient";
 
 export const metadata: Metadata = {
@@ -25,18 +27,20 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   let delhiReady = false;
   let delhiStatusMessage: string | null = null;
+  let liveStateCodes: string[] = [];
+  let initialStateCode = "DL";
 
   try {
-    const rows = await db
-      .select()
-      .from(states)
-      .where(eq(states.code, "DL"))
-      .limit(1);
+    const rows = await db.select().from(states);
 
-    const delhi = rows[0] ?? null;
+    const delhi = rows.find((row) => row.code === "DL") ?? null;
     const ingestionStatus = delhi?.ingestion_status ?? "missing";
     const delhiEnabled = delhi?.is_enabled ?? false;
     delhiReady = delhiEnabled && ingestionStatus === "ready";
+
+    liveStateCodes = rows
+      .filter((row) => row.is_enabled && row.ingestion_status === "ready")
+      .map((row) => row.code);
 
     if (!delhi) {
       delhiStatusMessage =
@@ -54,6 +58,19 @@ export default async function HomePage() {
     console.error("Error loading Delhi state for home page", error);
     delhiStatusMessage =
       "Delhi status is temporarily unavailable. Please try again in a bit.";
+  }
+
+  try {
+    const currentUser = await getCurrentUser();
+
+    if (currentUser) {
+      const userState = await getUserOrDefaultState({
+        state_code: currentUser.state_code
+      });
+      initialStateCode = userState.code;
+    }
+  } catch (error) {
+    console.error("Error loading user state for home page", error);
   }
 
   const devAdminId = process.env.NEXT_PUBLIC_DEV_ADMIN_ID;
@@ -128,8 +145,8 @@ export default async function HomePage() {
                   India-ready
                 </div>
                 <p className="text-[13px] text-slate-300">
-                  A single engine for all states. As data comes online, features switch on via admin
-                  controls.
+                  A single engine for all states. As data comes online, new states and features
+                  appear here.
                 </p>
               </div>
               <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-3">
@@ -137,7 +154,7 @@ export default async function HomePage() {
                   Honest defaults
                 </div>
                 <p className="text-[13px] text-slate-300">
-                  No mock toggles or fake numbers – every action is backed by real APIs, payments,
+                  No fake switches or fake numbers – every action leads to real requests, payments,
                   and filings.
                 </p>
               </div>
@@ -156,7 +173,12 @@ export default async function HomePage() {
       </section>
 
       <section id="state-search" className="mt-8 space-y-4">
-        <HomeStateSearchClient delhiReady={delhiReady} delhiStatusMessage={delhiStatusMessage} />
+        <HomeStateSearchClient
+          delhiReady={delhiReady}
+          delhiStatusMessage={delhiStatusMessage}
+          liveStateCodes={liveStateCodes}
+          initialStateCode={initialStateCode}
+        />
       </section>
 
       <section className="mt-10 grid gap-4 text-sm text-slate-200 sm:grid-cols-3">

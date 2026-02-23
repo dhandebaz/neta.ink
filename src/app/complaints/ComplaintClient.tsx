@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { openRazorpayCheckout } from "@/lib/payments/razorpayClient";
+import { INDIAN_STATES } from "@/lib/states";
 
 type ApiResponse<T> =
   | { success: true; data: T }
@@ -49,6 +50,8 @@ type Props = {
   politicianId?: number;
   politicianSummary?: TargetPoliticianSummary;
   complaintsEnabled?: boolean;
+  aiComplaintsEnabled?: boolean;
+  stateDisplayName?: string;
 };
 
 export function ComplaintClient(props: Props) {
@@ -70,6 +73,25 @@ export function ComplaintClient(props: Props) {
 
   const [selectedComplaint, setSelectedComplaint] = useState<ComplaintSummary | null>(null);
   const [fileOpen, setFileOpen] = useState(true);
+
+  const [manualTitle, setManualTitle] = useState("");
+  const [manualDescription, setManualDescription] = useState("");
+  const [manualDepartment, setManualDepartment] = useState("");
+  const [manualSeverity, setManualSeverity] = useState<"low" | "medium" | "high">("medium");
+
+  const aiEnabled = props.aiComplaintsEnabled !== false;
+  const stateNameLabel = props.stateDisplayName || "your state";
+
+  const departments = [
+    "Municipal corporation / local body",
+    "Water supply board / Jal Board",
+    "Public Works Department (PWD)",
+    "Power DISCOM / electricity board",
+    "Transport department",
+    "Police (non-emergency)",
+    "Environment department / municipal",
+    "Other civic body"
+  ];
 
   const preselectedPoliticianId =
     typeof props.politicianId === "number" && Number.isFinite(props.politicianId)
@@ -165,7 +187,14 @@ export function ComplaintClient(props: Props) {
     const loc = locationText.trim();
 
     if (!loc) {
-      setError("Please enter a location or area in Delhi.");
+      setError(`Please enter a location or area in ${stateNameLabel}.`);
+      return;
+    }
+
+    if (!aiEnabled) {
+      setError(
+        "Automatic suggestions are currently unavailable. You can still fill in the complaint details manually below."
+      );
       return;
     }
 
@@ -200,12 +229,22 @@ export function ComplaintClient(props: Props) {
 
       setPhotoUrl(url);
 
+      const userStateCode = user?.state_code;
+      const userStateName =
+        userStateCode && userStateCode.trim().length === 2
+          ? INDIAN_STATES.find(
+              (s) => s.code === userStateCode.trim().toUpperCase()
+            )?.name
+          : undefined;
+
       const analyzeRes = await fetch("/api/complaints/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           photoUrl: url,
-          locationText: loc
+          locationText: loc,
+          stateCode: userStateCode,
+          stateName: userStateName
         })
       });
 
@@ -219,6 +258,16 @@ export function ComplaintClient(props: Props) {
         setError(message);
       } else {
         setAnalysis(analyzeJson.data);
+        setManualTitle(analyzeJson.data.title);
+        setManualDescription(analyzeJson.data.description);
+        setManualDepartment(analyzeJson.data.department_name);
+        const sev =
+          analyzeJson.data.severity === "low" ||
+          analyzeJson.data.severity === "high" ||
+          analyzeJson.data.severity === "medium"
+            ? analyzeJson.data.severity
+            : "medium";
+        setManualSeverity(sev);
         setMessage("Draft generated. Review and submit your complaint.");
       }
     } catch {
@@ -237,8 +286,23 @@ export function ComplaintClient(props: Props) {
       return;
     }
 
-    if (!photoUrl || !analysis) {
-      setError("Upload and analyze a photo before submitting.");
+    const loc = locationText.trim();
+    const title = manualTitle.trim();
+    const description = manualDescription.trim();
+    const department = manualDepartment.trim();
+
+    if (!photoUrl) {
+      setError("Upload a photo of the civic issue before submitting.");
+      return;
+    }
+
+    if (!loc) {
+      setError(`Please enter a location or area in ${stateNameLabel}.`);
+      return;
+    }
+
+    if (!title || !description || !department) {
+      setError("Title, department, and description are required to file a complaint.");
       return;
     }
 
@@ -248,13 +312,13 @@ export function ComplaintClient(props: Props) {
       const res = await fetch("/api/complaints/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        body: JSON.stringify({
           photoUrl,
-          locationText: analysis.locationText,
-          title: analysis.title,
-          description: analysis.description,
-          departmentName: analysis.department_name,
-          severity: analysis.severity,
+          locationText: loc,
+          title,
+          description,
+          departmentName: department,
+          severity: manualSeverity,
           politicianId: preselectedPoliticianId
         })
       });
@@ -321,7 +385,8 @@ export function ComplaintClient(props: Props) {
               File a civic complaint
             </div>
             <p className="mt-1 text-xs text-slate-300">
-              Upload a photo, let AI draft the complaint, then pay ₹11 to submit.
+              Upload a photo, write your complaint, and pay ₹11 to submit. neta can help draft when
+              AI is available, but you always control the final text.
             </p>
           </div>
           <button
@@ -361,7 +426,7 @@ export function ComplaintClient(props: Props) {
                     </p>
                   )}
                   <label className="block text-xs font-medium text-slate-200">
-                    Location / area in Delhi
+                    Location / area in {stateNameLabel}
                     <input
                       type="text"
                       value={locationText}
@@ -384,14 +449,23 @@ export function ComplaintClient(props: Props) {
                       className="mt-1 w-full text-xs text-slate-200 file:mr-3 file:rounded-full file:border-0 file:bg-slate-800 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-100 hover:file:bg-slate-700"
                     />
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => void handleAnalyze()}
-                    className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
-                    disabled={analyzing}
-                  >
-                    {analyzing ? "Uploading and drafting..." : "Upload photo and draft complaint"}
-                  </button>
+                  {aiEnabled ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleAnalyze()}
+                      className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
+                      disabled={analyzing}
+                    >
+                      {analyzing
+                        ? "Uploading and drafting..."
+                        : "Upload photo and suggest complaint details"}
+                    </button>
+                  ) : (
+                    <p className="text-[11px] text-slate-400">
+                      Automatic suggestions are currently unavailable. You can still fill in the
+                      complaint details manually below.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -407,56 +481,83 @@ export function ComplaintClient(props: Props) {
                 </div>
               </div>
 
-              {analysis && (
-                <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-4 space-y-4">
-                  <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                      Detected issue
-                    </div>
-                    <div className="mt-1 text-sm font-semibold text-slate-50">
-                      {analysis.issue_type}
-                    </div>
-                    <div className="mt-1 text-[11px] text-slate-400">
-                      Severity: {analysis.severity} · Department: {analysis.department_name}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="block text-xs font-medium text-slate-200">
-                      Complaint title
-                      <input
-                        type="text"
-                        value={analysis.title}
-                        onChange={(e) =>
-                          setAnalysis({ ...analysis, title: e.target.value })
-                        }
-                        className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
-                      />
-                    </label>
-                    <label className="block text-xs font-medium text-slate-200">
-                      Complaint body
-                      <textarea
-                        value={analysis.description}
-                        onChange={(e) =>
-                          setAnalysis({ ...analysis, description: e.target.value })
-                        }
-                        className="mt-1 w-full min-h-[120px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
-                      />
-                    </label>
-                  </div>
-
-                  {props.complaintsEnabled !== false && (
-                    <button
-                      type="button"
-                      onClick={() => void handleSubmitComplaint()}
-                      className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60"
-                      disabled={submitting}
+              <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-4 space-y-4">
+                <div className="space-y-3">
+                  <label className="block text-xs font-medium text-slate-200">
+                    Complaint title
+                    <input
+                      type="text"
+                      value={manualTitle}
+                      onChange={(e) => setManualTitle(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                      placeholder="Short summary of the issue"
+                    />
+                  </label>
+                  <label className="block text-xs font-medium text-slate-200">
+                    Department
+                    <select
+                      value={manualDepartment}
+                      onChange={(e) => setManualDepartment(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
                     >
-                      {submitting ? "Submitting complaint..." : "Pay ₹11 & submit complaint"}
-                    </button>
+                      <option value="">Select a department</option>
+                      {departments.map((dept) => (
+                        <option key={dept} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block text-xs font-medium text-slate-200">
+                    Complaint description
+                    <textarea
+                      value={manualDescription}
+                      onChange={(e) => setManualDescription(e.target.value)}
+                      className="mt-1 w-full min-h-[120px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                      placeholder="Describe what is wrong, where, and since when."
+                    />
+                  </label>
+                  <label className="block text-xs font-medium text-slate-200">
+                    Severity
+                    <select
+                      value={manualSeverity}
+                      onChange={(e) =>
+                        setManualSeverity(
+                          e.target.value === "low" || e.target.value === "high" ? e.target.value : "medium"
+                        )
+                      }
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </label>
+                  {analysis && (
+                    <p className="text-[11px] text-slate-400">
+                      AI suggestions filled these fields based on your photo. You can edit anything
+                      before submitting.
+                    </p>
+                  )}
+                  {!aiEnabled && (
+                    <p className="text-[11px] text-slate-400">
+                      Automatic suggestions are currently unavailable. You can still file a
+                      complaint by filling the fields above.
+                    </p>
                   )}
                 </div>
-              )}
+
+                {props.complaintsEnabled !== false && (
+                  <button
+                    type="button"
+                    onClick={() => void handleSubmitComplaint()}
+                    className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60"
+                    disabled={submitting}
+                  >
+                    {submitting ? "Submitting complaint..." : "Pay ₹11 & submit complaint"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -484,7 +585,7 @@ export function ComplaintClient(props: Props) {
         )}
         {!publicLoading && publicComplaints.length === 0 && (
           <p className="text-xs text-slate-500">
-            No public complaints yet for Delhi.
+            No public complaints yet in {stateNameLabel}.
           </p>
         )}
 

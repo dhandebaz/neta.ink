@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { AiJsonError, GenerateRtiDraftParams, generateRtiDraft } from "@/lib/aiPrompts";
 import { getIpKey, getUserKey, rateLimit } from "@/lib/rateLimit";
 import { getCurrentUser } from "@/lib/auth/session";
+import { isAiRtiEnabled } from "@/lib/ai/flags";
 
 type TargetType = "MP" | "MLA" | "DEPT";
 
@@ -55,6 +56,18 @@ async function logUsage(options: {
 }
 
 export async function POST(req: NextRequest) {
+  const aiEnabled = await isAiRtiEnabled();
+
+  if (!aiEnabled) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "AI drafting is temporarily disabled. Please write your RTI manually.",
+        data: null
+      },
+      { status: 503 }
+    );
+  }
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -220,6 +233,24 @@ export async function POST(req: NextRequest) {
     };
   } catch (error) {
     if (error instanceof AiJsonError) {
+      if (error.message === "AI drafting disabled") {
+        await logUsage({
+          userId,
+          stateCode,
+          success: false,
+          statusCode: 503,
+          errorCode: "AI_DISABLED"
+        });
+        return NextResponse.json(
+          {
+            success: false,
+            error: "AI drafting is temporarily disabled. Please write your RTI manually.",
+            data: null
+          },
+          { status: 503 }
+        );
+      }
+
       console.error("AI RTI draft returned invalid JSON", error);
       await logUsage({
         userId,

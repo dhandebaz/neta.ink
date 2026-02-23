@@ -3,18 +3,17 @@ import { states } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { ensureDelhiState } from "@/lib/states";
 
-async function ingestDelhiConstituencies(): Promise<void> {
+export async function ingestDelhiConstituencies(): Promise<void> {
   await ingestDelhiAssemblyList();
-  // In future, also ingest wards and NDMC areas.
 }
 
-async function ingestDelhiPoliticians(): Promise<void> {
+export async function ingestDelhiPoliticians(): Promise<void> {
   await ingestDelhiMLAsFromMyNeta();
   await ingestDelhiMPs();
   await ingestDelhiCouncillorsFromMyNeta();
 }
 
-async function ingestDelhiCivicContacts(): Promise<void> {
+export async function ingestDelhiCivicContacts(): Promise<void> {
   await ingestDelhiCivicContactsFromSites();
 }
 
@@ -53,6 +52,8 @@ async function ingestDelhiCouncillorsFromMyNeta(): Promise<void> {}
  * - NDMC contact: https://www.ndmc.gov.in/contact_us/contact_us.aspx
  */
 async function ingestDelhiCivicContactsFromSites(): Promise<void> {}
+
+export async function ingestDelhiRtiPortal(): Promise<void> {}
 
 export async function runDelhiIngestion(): Promise<void> {
   const delhi = await ensureDelhiState();

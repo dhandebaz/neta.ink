@@ -18,6 +18,7 @@ export const states = pgTable("states", {
   name: text("name").notNull(),
   is_enabled: boolean("is_enabled").notNull().default(false),
   ingestion_status: text("ingestion_status").notNull().default("idle"),
+  primary_city_label: text("primary_city_label"),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
@@ -215,6 +216,28 @@ export const system_settings = pgTable("system_settings", {
   updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const state_settings = pgTable("state_settings", {
+  id: serial("id").primaryKey(),
+  state_code: text("state_code")
+    .notNull()
+    .references(() => states.code),
+  key: text("key").notNull(),
+  value: text("value").notNull(),
+  description: text("description"),
+  updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const state_ingestion_tasks = pgTable("state_ingestion_tasks", {
+  id: serial("id").primaryKey(),
+  state_code: text("state_code")
+    .notNull()
+    .references(() => states.code),
+  task_type: text("task_type").notNull(),
+  status: text("status").notNull().default("pending"),
+  last_error: text("last_error"),
+  updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const statesRelations = relations(states, ({ many }) => ({
   constituencies: many(constituencies),
   politicians: many(politicians),
@@ -374,3 +397,6 @@ export type NewUsageEvent = InferInsertModel<typeof usage_events>;
 
 export type SystemSetting = InferSelectModel<typeof system_settings>;
 export type NewSystemSetting = InferInsertModel<typeof system_settings>;
+
+export type StateSetting = InferSelectModel<typeof state_settings>;
+export type NewStateSetting = InferInsertModel<typeof state_settings>;

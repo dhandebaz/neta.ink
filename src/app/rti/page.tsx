@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { db } from "@/db/client";
-import { constituencies, politicians } from "@/db/schema";
+import { constituencies, politicians, states } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { RtiClient } from "./RtiClient";
-import { getFeatureFlagBoolean } from "@/lib/states";
+import { getCurrentUser } from "@/lib/auth/session";
+import { getStateAndGlobalFeatureFlagBoolean, getUserOrDefaultState } from "@/lib/states";
+import { isAiRtiEnabled } from "@/lib/ai/flags";
 
 export const metadata: Metadata = {
   title: "neta RTI – draft RTI applications for India (Delhi first)",
@@ -39,6 +41,9 @@ export default async function RtiPage({ searchParams }: PageProps) {
     : "DEPT";
 
   let rtiEnabled = false;
+  let aiRtiEnabled = true;
+  let stateWarning: string | null = null;
+  let stateDisplayName = "Delhi";
   let politicianId: number | undefined;
   let initialSummary:
     | {
@@ -52,9 +57,45 @@ export default async function RtiPage({ searchParams }: PageProps) {
   let dataError: string | null = null;
 
   try {
-    const rtiEnabledGlobal = await getFeatureFlagBoolean("rti_enabled_global", true);
-    const rtiEnabledDelhi = await getFeatureFlagBoolean("rti_enabled_DL", true);
-    rtiEnabled = rtiEnabledGlobal && rtiEnabledDelhi;
+    const currentUser = await getCurrentUser();
+
+    const stateCodeParam =
+      typeof params.state === "string" ? params.state.toUpperCase() : undefined;
+    let effectiveStateCode: string;
+
+    if (stateCodeParam && stateCodeParam.length === 2) {
+      effectiveStateCode = stateCodeParam;
+    } else if (currentUser) {
+      const userState = await getUserOrDefaultState({
+        state_code: currentUser.state_code
+      });
+      effectiveStateCode = userState.code;
+    } else {
+      effectiveStateCode = "DL";
+    }
+
+    const [stateRow] = await db
+      .select()
+      .from(states)
+      .where(eq(states.code, effectiveStateCode))
+      .limit(1);
+
+    if (stateRow) {
+      stateDisplayName = stateRow.name;
+
+      if (stateRow.is_enabled && stateRow.ingestion_status !== "ready") {
+        stateWarning = `We\u2019re still setting up data for ${stateRow.name}. Some features may be limited.`;
+      }
+    } else {
+      stateDisplayName = effectiveStateCode === "DL" ? "Delhi" : "this state";
+    }
+
+    rtiEnabled = await getStateAndGlobalFeatureFlagBoolean(
+      effectiveStateCode,
+      "rti_enabled",
+      true
+    );
+    aiRtiEnabled = await isAiRtiEnabled();
 
     const rawPoliticianId =
       typeof params.politicianId === "string" ? params.politicianId : undefined;
@@ -114,15 +155,16 @@ export default async function RtiPage({ searchParams }: PageProps) {
       <div className="w-full max-w-5xl space-y-6">
         <header className="space-y-3">
           <div className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-amber-200">
-            RTI · Delhi first
+            RTI · {stateDisplayName} first
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-slate-50 sm:text-4xl">
               Draft RTI applications that actually get read
             </h1>
             <p className="max-w-2xl text-sm text-slate-300">
-              neta helps you turn questions into RTI applications tuned for Delhi departments and representatives.
-              Draft, review, then pay ₹11 to save and file on the official RTI portal yourself.
+              neta helps you turn questions into RTI applications tuned for {stateDisplayName}{" "}
+              departments and representatives. Draft, review, then pay ₹11 to save and file on the
+              official RTI portal yourself.
             </p>
           </div>
         </header>
@@ -133,9 +175,16 @@ export default async function RtiPage({ searchParams }: PageProps) {
           </div>
         )}
 
+        {!dataError && stateWarning && (
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+            {stateWarning}
+          </div>
+        )}
+
         {!dataError && !rtiEnabled && (
           <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-            RTI drafting is currently unavailable for Delhi. Any existing RTI history remains visible below.
+            RTI drafting is currently unavailable for {stateDisplayName}. Any existing RTI history
+            remains visible below.
           </div>
         )}
 
@@ -157,6 +206,8 @@ export default async function RtiPage({ searchParams }: PageProps) {
               : undefined
           }
           rtiEnabled={rtiEnabled && !dataError}
+          aiRtiEnabled={aiRtiEnabled}
+          stateDisplayName={stateDisplayName}
         />
       </div>
     </main>

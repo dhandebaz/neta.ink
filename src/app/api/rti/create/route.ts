@@ -9,7 +9,8 @@ import { getCurrentUser } from "@/lib/auth/session";
 type CreateBody = {
   politicianId?: number;
   question: string;
-  rtiText: string;
+  rtiText?: string;
+  manual_rti_text?: string;
   pioName?: string;
   pioAddress?: string;
 };
@@ -52,18 +53,28 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json().catch(() => null)) as CreateBody | null;
 
-  if (!body) {
+  if (!body || typeof body.question !== "string") {
     return NextResponse.json(
       { success: false, error: "Invalid JSON body", data: null },
       { status: 400 }
     );
   }
 
-  const { politicianId, question, rtiText, pioName, pioAddress } = body;
+  const { politicianId, question, rtiText, manual_rti_text, pioName, pioAddress } = body;
 
-  if (!question || !question.trim() || !rtiText || !rtiText.trim()) {
+  const trimmedQuestion = question.trim();
+  const rtiDraftText = typeof rtiText === "string" ? rtiText.trim() : "";
+  const manualText = typeof manual_rti_text === "string" ? manual_rti_text.trim() : "";
+  const finalRtiText = rtiDraftText || manualText;
+
+  if (!trimmedQuestion || !finalRtiText) {
     return NextResponse.json(
-      { success: false, error: "question and rtiText are required", data: null },
+      {
+        success: false,
+        error:
+          "RTI question and text are required. Write the RTI body manually if drafting helper is unavailable.",
+        data: null
+      },
       { status: 400 }
     );
   }
@@ -148,8 +159,8 @@ export async function POST(req: NextRequest) {
       user_id: userId,
       state_id: state.id,
       politician_id: politicianId ?? null,
-      question,
-      rti_text: rtiText,
+      question: trimmedQuestion,
+      rti_text: finalRtiText,
       portal_url: "https://rtionline.gov.in",
       pio_name: pioName ?? null,
       pio_address: pioAddress ?? null,

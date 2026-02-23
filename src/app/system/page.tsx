@@ -10,6 +10,9 @@ import {
 } from "@/db/schema";
 import { desc, eq, gte } from "drizzle-orm";
 import { AdminActionsClient } from "./AdminActionsClient";
+import { AiFlagsClient } from "./AiFlagsClient";
+import { StatesAdminClient } from "./StatesAdminClient";
+import { isAiComplaintsEnabled, isAiRtiEnabled } from "@/lib/ai/flags";
 
 type PageProps = {
   searchParams?: Promise<{
@@ -56,11 +59,9 @@ export default async function SystemPage({ searchParams }: PageProps) {
     );
   }
 
-  const [delhi] = await db
-    .select()
-    .from(states)
-    .where(eq(states.code, "DL"))
-    .limit(1);
+  const allStatesRows = await db.select().from(states);
+
+  const delhi = allStatesRows.find((row) => row.code === "DL") ?? null;
 
   let delhiCounts:
     | {
@@ -106,6 +107,16 @@ export default async function SystemPage({ searchParams }: PageProps) {
     };
   }
 
+  const stateSummaries = allStatesRows
+    .map((row) => ({
+      code: row.code,
+      name: row.name,
+      is_enabled: row.is_enabled,
+      ingestion_status: row.ingestion_status,
+      primary_city_label: row.primary_city_label ?? null
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   const now = new Date();
   const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
@@ -149,18 +160,34 @@ export default async function SystemPage({ searchParams }: PageProps) {
 
   const latestEvents = recentEvents.slice(0, 50);
 
+  const [aiRtiEnabled, aiComplaintsEnabled] = await Promise.all([
+    isAiRtiEnabled(),
+    isAiComplaintsEnabled()
+  ]);
+
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-4xl space-y-8">
         <header className="space-y-1">
           <h1 className="text-2xl font-bold">System Admin</h1>
           <p className="text-sm text-slate-600">
-            Internal view for Delhi state status and core data.
+            Internal view for state status and core data.
           </p>
           <p className="text-xs text-slate-500">
             Signed in as admin user ID {adminUserId}
           </p>
         </header>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">States</h2>
+          <p className="text-sm text-slate-600">
+            Manage which states are enabled and track ingestion tasks.
+          </p>
+          <StatesAdminClient
+            adminUserId={adminUserId}
+            initialStates={stateSummaries}
+          />
+        </section>
 
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Delhi State Status</h2>
@@ -191,6 +218,18 @@ export default async function SystemPage({ searchParams }: PageProps) {
               </div>
             </div>
           )}
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">AI features</h2>
+          <p className="text-sm text-slate-600">
+            Toggle AI helpers on or off. When off, citizens can still file RTIs and complaints manually.
+          </p>
+          <AiFlagsClient
+            adminUserId={adminUserId}
+            initialAiRtiEnabled={aiRtiEnabled}
+            initialAiComplaintsEnabled={aiComplaintsEnabled}
+          />
         </section>
 
         <section className="space-y-3">

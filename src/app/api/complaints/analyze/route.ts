@@ -3,6 +3,7 @@ import { db } from "@/db/client";
 import { usage_events } from "@/db/schema";
 import { AiJsonError, AnalyzeComplaintParams, analyzeComplaint } from "@/lib/aiPrompts";
 import { getIpKey, rateLimit } from "@/lib/rateLimit";
+import { isAiComplaintsEnabled } from "@/lib/ai/flags";
 
 type AnalysisResult = {
   issue_type: string;
@@ -43,6 +44,20 @@ async function logUsage(options: {
 }
 
 export async function POST(req: NextRequest) {
+  const aiEnabled = await isAiComplaintsEnabled();
+
+  if (!aiEnabled) {
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "AI suggestion is temporarily disabled. Please fill in complaint details manually.",
+        data: null
+      },
+      { status: 503 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
 
   if (!body || typeof body.photoUrl !== "string") {
@@ -128,8 +143,26 @@ export async function POST(req: NextRequest) {
     }
   } catch (error) {
     if (error instanceof AiJsonError) {
+      if (error.message === "AI suggestion disabled") {
+        await logUsage({
+          success: false,
+          statusCode: 503,
+          stateCode: stateCodeRaw ?? "DL",
+          errorCode: "AI_DISABLED"
+        });
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "AI suggestion is temporarily disabled. Please fill in complaint details manually.",
+            data: null
+          },
+          { status: 503 }
+        );
+      }
+
       console.error("AI complaint analysis returned invalid JSON", error);
-       await logUsage({
+      await logUsage({
         success: false,
         statusCode: 502,
         stateCode: stateCodeRaw ?? "DL",

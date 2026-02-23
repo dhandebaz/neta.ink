@@ -1,4 +1,4 @@
-import { callAiText } from "@/lib/ai/router";
+import { AiUnavailableError, callAiText } from "@/lib/ai/router";
 
 export type TargetType = "MP" | "MLA" | "DEPT";
 
@@ -131,6 +131,14 @@ const STATE_PROMPT_CONFIGS: StatePromptConfig[] = [
     complaintCityLabel: "Delhi",
     complaintDepartmentsSummary:
       "Typical departments you can choose from include: the Municipal Corporation (for local roads, garbage, drains, and streetlights), the Delhi Jal Board (for water supply issues), power distribution companies (for electricity supply issues), and the Public Works Department (PWD) for major roads and public works."
+  },
+  {
+    code: "MH",
+    displayName: "Maharashtra",
+    rtiPioLabel: "Public Information Officer, Government of Maharashtra",
+    complaintCityLabel: "Mumbai",
+    complaintDepartmentsSummary:
+      "Typical departments you can choose from include: the Municipal Corporation (for local roads, garbage, drains, and streetlights), the water supply department or Jal Board (for water issues), electricity distribution companies (for power supply issues), and the Public Works Department (PWD) for major roads and public works. Use the most relevant department based on the location in Maharashtra."
   }
 ];
 
@@ -276,11 +284,21 @@ export async function generateRtiDraft(
 
   const prompt = ["SYSTEM PROMPT:", ...systemLines, "", "USER INPUT:", ...userLines].join("\n");
 
-  const { text: raw } = await callAiText({
-    prompt,
-    temperature: 0.2,
-    maxTokens: 2048
-  });
+  let raw: string;
+
+  try {
+    const response = await callAiText({
+      prompt,
+      temperature: 0.2,
+      maxTokens: 2048
+    });
+    raw = response.text;
+  } catch (error) {
+    if (error instanceof AiUnavailableError) {
+      throw new AiJsonError("AI drafting disabled");
+    }
+    throw error;
+  }
   const trimmed = raw.trim();
 
   if (!trimmed.startsWith("{")) {
@@ -390,11 +408,21 @@ export async function analyzeComplaint(
 
   const prompt = ["SYSTEM PROMPT:", ...systemLines, "", "USER INPUT:", ...userLines].join("\n");
 
-  const { text: raw } = await callAiText({
-    prompt,
-    temperature: 0.2,
-    maxTokens: 2048
-  });
+  let raw: string;
+
+  try {
+    const response = await callAiText({
+      prompt,
+      temperature: 0.2,
+      maxTokens: 2048
+    });
+    raw = response.text;
+  } catch (error) {
+    if (error instanceof AiUnavailableError) {
+      throw new AiJsonError("AI suggestion disabled");
+    }
+    throw error;
+  }
   const trimmed = raw.trim();
 
   if (!trimmed.startsWith("{")) {

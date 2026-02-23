@@ -104,9 +104,20 @@ export async function POST(req: NextRequest) {
   const { photoUrl, locationText, title, description, departmentName, severity, politicianId } =
     body;
 
-  if (!photoUrl || !locationText || !title || !description || !departmentName) {
+  const trimmedPhotoUrl = typeof photoUrl === "string" ? photoUrl.trim() : "";
+  const trimmedLocation = typeof locationText === "string" ? locationText.trim() : "";
+  const trimmedTitle = typeof title === "string" ? title.trim() : "";
+  const trimmedDescription = typeof description === "string" ? description.trim() : "";
+  const trimmedDepartment = typeof departmentName === "string" ? departmentName.trim() : "";
+
+  if (!trimmedPhotoUrl || !trimmedLocation || !trimmedTitle || !trimmedDescription || !trimmedDepartment) {
     return NextResponse.json(
-      { success: false, error: "Missing required fields", data: null },
+      {
+        success: false,
+        error:
+          "Photo, location, title, department, and description are required to file a complaint.",
+        data: null
+      },
       { status: 400 }
     );
   }
@@ -204,11 +215,11 @@ export async function POST(req: NextRequest) {
         typeof politicianId === "number" && Number.isFinite(politicianId) && politicianId > 0
           ? politicianId
           : null,
-      title,
-      description,
-      photo_url: photoUrl,
-      location_text: locationText,
-      department_name: departmentName,
+      title: trimmedTitle,
+      description: trimmedDescription,
+      photo_url: trimmedPhotoUrl,
+      location_text: trimmedLocation,
+      department_name: trimmedDepartment,
       department_email: departmentEmail,
       severity: normalizedSeverity,
       status: "pending",
