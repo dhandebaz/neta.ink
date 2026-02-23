@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth, hasFirebaseConfig } from "@/lib/firebase";
 
@@ -38,29 +38,48 @@ export function AuthPhoneClient(props: Props) {
     }
   }, []);
 
-  if (!hasFirebaseConfig) {
-    const close = () => {
-      if (props.onClose) {
-        props.onClose();
-      }
-    };
+  const close = () => {
+    if (props.onClose) {
+      props.onClose();
+    }
+  };
 
+  const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    close();
+  };
+
+  if (!hasFirebaseConfig) {
     return (
-      <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 sm:items-center">
-        <div className="w-full max-w-sm rounded-t-2xl bg-slate-950 p-4 shadow-lg sm:rounded-2xl">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="text-sm font-semibold text-slate-100">Sign in to neta</div>
+      <div
+        className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4"
+        onClick={handleBackdropClick}
+      >
+        <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950/95 p-5 shadow-2xl">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold text-slate-100">Sign in to neta</div>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Phone sign-in is not available in this preview environment.
+              </p>
+            </div>
             <button
               type="button"
               onClick={close}
-              className="rounded-full p-1 text-xs text-slate-400 hover:bg-slate-800"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-[11px] text-slate-300 hover:bg-slate-800"
             >
-              Close
+              ✕
             </button>
           </div>
-          <p className="text-xs text-slate-300">
-            Phone sign-in is not configured for this environment.
-          </p>
+          <div className="space-y-2 text-[11px] text-slate-300">
+            <p>
+              Auth is wired for production with Firebase Phone Auth and invisible reCAPTCHA. In this
+              environment, the backend is disabled so you can explore flows without sending SMS.
+            </p>
+            <p className="text-slate-400">
+              To test real sign-in, configure Firebase credentials and redeploy.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -154,79 +173,89 @@ export function AuthPhoneClient(props: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 sm:items-center">
-      <div className="w-full max-w-sm rounded-t-2xl bg-slate-950 p-4 shadow-lg sm:rounded-2xl">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="text-sm font-semibold text-slate-100">Sign in to neta</div>
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4"
+      onClick={handleBackdropClick}
+    >
+      <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950/95 p-5 shadow-2xl">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold text-slate-100">Sign in to neta</div>
+            <p className="mt-1 text-[11px] text-slate-400">
+              Use your phone number to sign in. We never share your details.
+            </p>
+          </div>
           <button
             type="button"
             onClick={close}
-            className="rounded-full p-1 text-xs text-slate-400 hover:bg-slate-800"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-[11px] text-slate-300 hover:bg-slate-800"
           >
-            Close
+            ✕
           </button>
         </div>
 
-        {step === "phone" && (
-          <div className="space-y-3">
-            <label className="block text-xs text-slate-300">
-              Phone number
-              <input
-                type="tel"
-                inputMode="tel"
-                placeholder="+91 98765 43210"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={startPhoneSignIn}
-              disabled={loading}
-              className="flex w-full items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-300 disabled:opacity-60"
-            >
-              {loading ? "Sending OTP..." : "Send OTP"}
-            </button>
-          </div>
-        )}
+        <div className="space-y-4">
+          {step === "phone" && (
+            <div className="space-y-3">
+              <label className="block text-xs text-slate-300">
+                Phone number
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="+91 98765 43210"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={startPhoneSignIn}
+                disabled={loading}
+                className="flex w-full items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-300 disabled:opacity-60"
+              >
+                {loading ? "Sending OTP..." : "Send OTP"}
+              </button>
+            </div>
+          )}
 
-        {step === "otp" && (
-          <div className="space-y-3">
-            <label className="block text-xs text-slate-300">
-              Enter OTP
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={6}
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={verifyOtp}
-              disabled={loading}
-              className="flex w-full items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-300 disabled:opacity-60"
-            >
-              {loading ? "Verifying..." : "Verify and continue"}
-            </button>
-          </div>
-        )}
+          {step === "otp" && (
+            <div className="space-y-3">
+              <label className="block text-xs text-slate-300">
+                Enter OTP
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={verifyOtp}
+                disabled={loading}
+                className="flex w-full items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-300 disabled:opacity-60"
+              >
+                {loading ? "Verifying..." : "Verify and continue"}
+              </button>
+            </div>
+          )}
 
-        {error && (
-          <p className="mt-3 text-xs text-red-400">
-            {error}
-          </p>
-        )}
-        {message && !error && (
-          <p className="mt-3 text-xs text-emerald-300">
-            {message}
-          </p>
-        )}
+          {error && (
+            <p className="text-xs text-red-400">
+              {error}
+            </p>
+          )}
+          {message && !error && (
+            <p className="text-xs text-emerald-300">
+              {message}
+            </p>
+          )}
+        </div>
 
-        <div id="neta-recaptcha-container" className="mt-2" />
+        <div id="neta-recaptcha-container" className="mt-2 h-0 overflow-hidden" />
       </div>
     </div>
   );

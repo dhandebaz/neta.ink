@@ -275,118 +275,154 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
   }
 
   return (
-    <div className="space-y-6 text-left">
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {message && <p className="text-sm text-emerald-700">{message}</p>}
+    <div className="space-y-8 text-left">
+      {error && (
+        <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-100">
+          {error}
+        </div>
+      )}
+      {message && !error && (
+        <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
+          {message}
+        </div>
+      )}
 
-      <section className="border rounded-lg p-4 space-y-4">
-        <h2 className="font-semibold text-lg">File new RTI</h2>
-
-        <div className="grid gap-4 md:grid-cols-[1fr,2fr]">
-          <div className="space-y-3">
-            <label className="block text-sm font-medium">
-              Target type
-              <select
-                value={targetType}
-                onChange={(e) => setTargetType(e.target.value as TargetType)}
-                className="mt-1 w-full border rounded px-3 py-2 text-sm"
-              >
-                <option value="DEPT">Delhi department (PIO, GNCTD)</option>
-                <option value="MLA">MLA (Delhi Assembly)</option>
-                <option value="MP">MP (Lok Sabha)</option>
-              </select>
-            </label>
-            {(targetType === "MP" || targetType === "MLA") && (
-              <label className="block text-sm font-medium">
-                Target politician ID
-                <input
-                  type="text"
-                  value={targetIdInput}
-                  onChange={(e) => setTargetIdInput(e.target.value)}
-                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                  placeholder="Internal politician_id (numeric)"
-                />
-              </label>
-            )}
-            {initialPoliticianSummary && (
-              <div className="border rounded-lg p-3 text-xs bg-slate-50 space-y-1">
-                <div className="font-semibold text-slate-800">
-                  Target representative
-                </div>
-                <div className="text-slate-700">
-                  {initialPoliticianSummary.name} ·{" "}
-                  {initialPoliticianSummary.position}
-                  {initialPoliticianSummary.constituencyName
-                    ? ` · ${initialPoliticianSummary.constituencyName}`
-                    : ""}
-                </div>
-                <div className="text-[11px]">
-                  <a
-                    href={`/politician/${initialPoliticianSummary.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    View profile
-                  </a>
-                </div>
-              </div>
-            )}
+      <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/80">
+        <div className="flex flex-col gap-2 border-b border-slate-800/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+              Draft a new RTI
+            </div>
+            <p className="mt-1 text-xs text-slate-300">
+              Describe what you want to ask under RTI. neta helps you format it for Delhi.
+            </p>
           </div>
-
-          <div className="space-y-3">
-            <label className="block text-sm font-medium">
-              RTI question / information sought
-              <textarea
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                className="mt-1 w-full border rounded px-3 py-2 text-sm min-h-[80px]"
-                placeholder="Describe clearly what information you want under RTI."
-              />
-            </label>
-          </div>
+          {user && (
+            <div className="text-[11px] text-slate-400">
+              Signed in as user #{user.id} ({user.state_code})
+            </div>
+          )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => void handleGenerateDraft()}
-          className="px-4 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-60"
-          disabled={generating}
-        >
-          {generating ? "Generating draft..." : "Generate Draft"}
-        </button>
+        <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
+          <div className="grid gap-4 md:grid-cols-[1fr,2fr]">
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-slate-200">
+                Target type
+                <select
+                  value={targetType}
+                  onChange={(e) => setTargetType(e.target.value as TargetType)}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-400"
+                >
+                  <option value="DEPT">Delhi department (PIO, GNCTD)</option>
+                  <option value="MLA">MLA (Delhi Assembly)</option>
+                  <option value="MP">MP (Lok Sabha)</option>
+                </select>
+              </label>
+              {(targetType === "MP" || targetType === "MLA") && (
+                <label className="block text-xs font-medium text-slate-200">
+                  Target politician ID
+                  <input
+                    type="text"
+                    value={targetIdInput}
+                    onChange={(e) => setTargetIdInput(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                    placeholder="Internal politician_id (numeric)"
+                  />
+                </label>
+              )}
+              {initialPoliticianSummary && (
+                <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-3 text-xs space-y-1">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+                    Target representative
+                  </div>
+                  <div className="text-xs text-slate-200">
+                    {initialPoliticianSummary.name} · {initialPoliticianSummary.position}
+                    {initialPoliticianSummary.constituencyName
+                      ? ` · ${initialPoliticianSummary.constituencyName}`
+                      : ""}
+                  </div>
+                  <div className="text-[11px]">
+                    <a
+                      href={`/politician/${initialPoliticianSummary.id}`}
+                      className="text-amber-300 hover:text-amber-200"
+                    >
+                      View profile
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-slate-200">
+                RTI question / information sought
+                <textarea
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  className="mt-1 w-full min-h-[96px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                  placeholder="Describe clearly what information you want under RTI."
+                />
+              </label>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => void handleGenerateDraft()}
+            className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
+            disabled={generating}
+          >
+            {generating ? "Generating draft..." : "Generate RTI draft"}
+          </button>
+        </div>
       </section>
 
       {draft && (
-        <section className="border rounded-lg p-4 space-y-4">
-          <h2 className="font-semibold text-lg">Draft RTI</h2>
+        <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/80">
+          <div className="border-b border-slate-800/80 px-4 py-3 sm:px-5">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+              Draft RTI
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              Review and edit the RTI body. You can download a PDF or save and pay.
+            </p>
+          </div>
 
-          <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">
+          <div className="grid gap-4 border-t border-slate-800/80 px-4 py-4 sm:grid-cols-[2fr,1fr] sm:px-5 sm:py-5">
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-slate-200">
                 RTI body
                 <textarea
                   value={rtiText}
                   onChange={(e) => setRtiText(e.target.value)}
-                  className="mt-1 w-full border rounded px-3 py-2 text-sm min-h-[200px]"
+                  className="mt-1 w-full min-h-[220px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
                 />
               </label>
             </div>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-xs text-slate-200">
               <div>
-                <div className="text-xs font-semibold text-slate-500">PIO name</div>
-                <div>{draft.pio_name || "Not specified"}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  PIO name
+                </div>
+                <div className="mt-1 text-xs text-slate-200">
+                  {draft.pio_name || "Not specified"}
+                </div>
               </div>
               <div>
-                <div className="text-xs font-semibold text-slate-500">PIO address</div>
-                <div className="whitespace-pre-line">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  PIO address
+                </div>
+                <div className="mt-1 whitespace-pre-line text-xs text-slate-200">
                   {draft.pio_address || "Not specified"}
                 </div>
               </div>
               {draft.filing_instructions.length > 0 && (
                 <div>
-                  <div className="text-xs font-semibold text-slate-500">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                     Filing instructions (Delhi)
                   </div>
-                  <ul className="text-xs text-slate-700 list-disc list-inside space-y-1">
+                  <ul className="mt-1 list-disc list-inside space-y-1 text-xs text-slate-300">
                     {draft.filing_instructions.map((step, index) => (
                       <li key={index}>{step}</li>
                     ))}
@@ -396,21 +432,21 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 border-t border-slate-800/80 px-4 py-3 sm:px-5">
             {rtiEnabled !== false && (
               <button
                 type="button"
                 onClick={() => void handleCreate()}
-                className="px-4 py-2 rounded bg-emerald-600 text-white text-sm disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60"
                 disabled={creating}
               >
-                {creating ? "Saving draft and creating payment..." : "Pay ₹11 & Save"}
+                {creating ? "Saving draft and creating payment..." : "Pay ₹11 & save RTI"}
               </button>
             )}
             <button
               type="button"
               onClick={handleDownloadPdf}
-              className="px-4 py-2 rounded border border-slate-300 text-sm"
+              className="inline-flex items-center justify-center rounded-full border border-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
             >
               Download RTI PDF
             </button>
@@ -418,13 +454,22 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
         </section>
       )}
 
-      <section className="border rounded-lg p-4 space-y-3">
-        <h2 className="font-semibold text-lg">My RTIs</h2>
+      <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-4 sm:px-5 sm:py-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              My RTIs
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              View the RTIs you have drafted and track their status.
+            </p>
+          </div>
+        </div>
         {myLoading && (
-          <p className="text-sm text-slate-600">Loading your RTI history…</p>
+          <p className="text-xs text-slate-400">Loading your RTI history…</p>
         )}
         {!myLoading && myRtis.length === 0 && (
-          <p className="text-sm text-slate-600">
+          <p className="text-xs text-slate-500">
             You have not drafted any RTIs yet.
           </p>
         )}
@@ -432,27 +477,36 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
           {myRtis.map((rti) => (
             <article
               key={rti.id}
-              className="border rounded p-3 text-sm space-y-1"
+              className="rounded-xl border border-slate-800 bg-slate-950/90 p-3 text-xs text-slate-200"
             >
-              <div className="font-medium line-clamp-2">{rti.question}</div>
-              <div className="text-xs text-slate-500">
-                {new Date(rti.created_at).toLocaleString()} · Status: {rti.status}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-sm font-semibold text-slate-50 line-clamp-2">
+                    {rti.question}
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-400">
+                    {new Date(rti.created_at).toLocaleString()}
+                  </div>
+                </div>
+                <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-200">
+                  {rti.status}
+                </span>
               </div>
               {rti.portal_url && (
-                <div className="text-xs text-slate-600">
+                <div className="mt-1 text-[11px] text-slate-400">
                   Suggested portal: {rti.portal_url}
                 </div>
               )}
               {rti.pio_name && (
-                <div className="text-xs text-slate-600">
+                <div className="mt-1 text-[11px] text-slate-400">
                   PIO: {rti.pio_name}
                 </div>
               )}
-              <div className="pt-1">
+              <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => setSelectedRti(rti)}
-                  className="rounded-full border px-3 py-1 text-[11px] font-medium hover:bg-slate-100"
+                  className="inline-flex items-center rounded-full border border-slate-700 px-3 py-1 text-[11px] font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
                 >
                   View full RTI
                 </button>
@@ -461,15 +515,16 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
           ))}
         </div>
       </section>
+
       {selectedRti && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl bg-white p-4 text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 p-4 text-slate-50">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h2 className="text-lg font-semibold line-clamp-3">
+                <h2 className="text-lg font-semibold">
                   {selectedRti.question}
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-[11px] text-slate-400">
                   {new Date(selectedRti.created_at).toLocaleString()} · Status:{" "}
                   {selectedRti.status}
                 </p>
@@ -477,29 +532,29 @@ export function RtiClient({ initialTargetType, initialTargetId, initialPoliticia
               <button
                 type="button"
                 onClick={() => setSelectedRti(null)}
-                className="ml-2 rounded-full border px-2 py-1 text-xs hover:bg-slate-100"
+                className="ml-2 inline-flex items-center justify-center rounded-full border border-slate-600 px-2 py-1 text-[11px] hover:border-amber-400 hover:text-amber-200"
               >
                 Close
               </button>
             </div>
-            <div className="mt-3 space-y-2 text-sm">
+            <div className="mt-3 space-y-3 text-sm">
               {selectedRti.portal_url && (
-                <div className="text-xs text-slate-600">
+                <div className="text-[11px] text-slate-400">
                   Suggested portal: {selectedRti.portal_url}
                 </div>
               )}
               {selectedRti.pio_name && (
-                <div className="text-xs text-slate-600">
+                <div className="text-[11px] text-slate-400">
                   PIO: {selectedRti.pio_name}
                 </div>
               )}
               {selectedRti.pio_address && (
-                <div className="text-xs text-slate-600 whitespace-pre-line">
+                <div className="text-[11px] text-slate-400 whitespace-pre-line">
                   PIO address: {selectedRti.pio_address}
                 </div>
               )}
               {selectedRti.rti_text && (
-                <div className="mt-2 whitespace-pre-line text-sm text-slate-800">
+                <div className="mt-2 whitespace-pre-line text-sm text-slate-100">
                   {selectedRti.rti_text}
                 </div>
               )}

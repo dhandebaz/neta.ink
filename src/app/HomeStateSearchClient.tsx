@@ -126,8 +126,7 @@ export function HomeStateSearchClient({ delhiReady, delhiStatusMessage }: Props)
             <DelhiSearchClient />
           ) : (
             <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-200">
-              Delhi data is initializing. Admins can use the system panel to finish seeding and
-              ingestion before citizens use this search.
+              Delhi data is still being set up and will be available here soon.
               {delhiStatusMessage && (
                 <div className="mt-2 text-[11px] text-amber-200/90">{delhiStatusMessage}</div>
               )}

@@ -111,25 +111,34 @@ export default async function RtiPage({ searchParams }: PageProps) {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl space-y-6">
-        <header className="space-y-3 text-center">
-          <h1 className="text-3xl font-bold">RTI Drafting (Delhi)</h1>
-          <p className="text-sm text-slate-600">
-            We help you draft RTI applications for Delhi for ₹11 per RTI. You can review the draft, pay, and then file it yourself on the official RTI portal.
-          </p>
+      <div className="w-full max-w-5xl space-y-6">
+        <header className="space-y-3">
+          <div className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-amber-200">
+            RTI · Delhi first
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-slate-50 sm:text-4xl">
+              Draft RTI applications that actually get read
+            </h1>
+            <p className="max-w-2xl text-sm text-slate-300">
+              neta helps you turn questions into RTI applications tuned for Delhi departments and representatives.
+              Draft, review, then pay ₹11 to save and file on the official RTI portal yourself.
+            </p>
+          </div>
         </header>
 
         {dataError && (
-          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-100">
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-100">
             {dataError}
           </div>
         )}
 
         {!dataError && !rtiEnabled && (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-900">
-            RTI drafting is currently unavailable for Delhi. Existing RTI history, if any, remains visible below.
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+            RTI drafting is currently unavailable for Delhi. Any existing RTI history remains visible below.
           </div>
         )}
+
         <RtiClient
           initialTargetType={
             initialSummary && (initialSummary.position === "MP" || initialSummary.position === "MLA")

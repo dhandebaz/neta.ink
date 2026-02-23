@@ -40,20 +40,20 @@ export default async function HomePage() {
 
     if (!delhi) {
       delhiStatusMessage =
-        "Delhi is not initialized yet. System admin must seed the state before citizens can use it.";
+        "Delhi is not ready yet. We are still setting things up.";
     } else if (ingestionStatus === "idle") {
       delhiStatusMessage =
-        "Delhi is enabled but ingestion has not been run. System admin must trigger Delhi ingestion.";
+        "Delhi setup is in progress and will be available here soon.";
     } else if (ingestionStatus === "ingesting") {
-      delhiStatusMessage = "Delhi data is currently being ingested.";
+      delhiStatusMessage = "Delhi data is currently being prepared.";
     } else if (ingestionStatus === "error") {
       delhiStatusMessage =
-        "Delhi ingestion failed. Please check the admin ingest endpoint and logs.";
+        "Delhi data could not be loaded right now. Please try again later.";
     }
   } catch (error) {
     console.error("Error loading Delhi state for home page", error);
     delhiStatusMessage =
-      "Delhi status is temporarily unavailable. System admin should check database connectivity.";
+      "Delhi status is temporarily unavailable. Please try again in a bit.";
   }
 
   const devAdminId = process.env.NEXT_PUBLIC_DEV_ADMIN_ID;

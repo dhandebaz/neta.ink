@@ -33,8 +33,6 @@ type AnalysisData = {
   additional_fields: string[];
 };
 
-type TabKey = "file" | "public" | "mine";
-
 type TargetPoliticianSummary = {
   name: string;
   position: string;
@@ -54,8 +52,6 @@ type Props = {
 };
 
 export function ComplaintClient(props: Props) {
-  const [activeTab, setActiveTab] = useState<TabKey>("file");
-
   const [user, setUser] = useState<CurrentUserSummary | null>(null);
   const [locationText, setLocationText] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -73,6 +69,7 @@ export function ComplaintClient(props: Props) {
   const [myLoading, setMyLoading] = useState(false);
 
   const [selectedComplaint, setSelectedComplaint] = useState<ComplaintSummary | null>(null);
+  const [fileOpen, setFileOpen] = useState(true);
 
   const preselectedPoliticianId =
     typeof props.politicianId === "number" && Number.isFinite(props.politicianId)
@@ -125,13 +122,11 @@ export function ComplaintClient(props: Props) {
     } finally {
       setPublicLoading(false);
     }
-  }, [setError, setPublicComplaints, setPublicLoading]);
+  }, []);
 
   useEffect(() => {
-    if (activeTab === "public" && publicComplaints.length === 0 && !publicLoading) {
-      void loadPublicComplaints();
-    }
-  }, [activeTab, publicComplaints.length, publicLoading, loadPublicComplaints]);
+    void loadPublicComplaints();
+  }, [loadPublicComplaints]);
 
   async function loadMyComplaints() {
     setMyLoading(true);
@@ -307,264 +302,324 @@ export function ComplaintClient(props: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="inline-flex rounded border overflow-hidden text-sm">
-        <button
-          type="button"
-          onClick={() => setActiveTab("file")}
-          className={`px-4 py-2 ${
-            activeTab === "file" ? "bg-slate-900 text-white" : "bg-white text-slate-800"
-          }`}
-        >
-          File complaint
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("public")}
-          className={`px-4 py-2 border-l ${
-            activeTab === "public" ? "bg-slate-900 text-white" : "bg-white text-slate-800"
-          }`}
-        >
-          Public complaints
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("mine")}
-          className={`px-4 py-2 border-l ${
-            activeTab === "mine" ? "bg-slate-900 text-white" : "bg-white text-slate-800"
-          }`}
-        >
-          My complaints
-        </button>
+    <div className="space-y-8">
+      {error && (
+        <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-100">
+          {error}
+        </div>
+      )}
+      {message && !error && (
+        <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
+          {message}
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/80">
+        <div className="flex w-full items-center justify-between px-4 py-3 text-left sm:px-5">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+              File a civic complaint
+            </div>
+            <p className="mt-1 text-xs text-slate-300">
+              Upload a photo, let AI draft the complaint, then pay ₹11 to submit.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFileOpen((open) => !open)}
+            className="ml-3 flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-xs text-slate-300 hover:border-amber-400 hover:text-amber-200"
+          >
+            {fileOpen ? "−" : "+"}
+          </button>
+        </div>
+
+        {fileOpen && (
+          <div className="border-t border-slate-800/80 px-4 py-4 text-left sm:px-5 sm:py-5">
+            <div className="space-y-4">
+              {preselectedPoliticianId && props.politicianSummary && (
+                <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-3 text-xs space-y-1">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+                    Target representative
+                  </div>
+                  <div className="text-xs text-slate-200">
+                    {props.politicianSummary.name} · {props.politicianSummary.position}
+                    {props.politicianSummary.constituencyName
+                      ? ` · ${props.politicianSummary.constituencyName}`
+                      : ""}
+                  </div>
+                </div>
+              )}
+              <div className="grid gap-4 md:grid-cols-[1.1fr,0.9fr]">
+                <div className="space-y-3">
+                  {user ? (
+                    <div className="text-[11px] text-slate-400">
+                      Filing as user #{user.id} ({user.state_code})
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-red-300">
+                      You need to sign in before filing a complaint.
+                    </p>
+                  )}
+                  <label className="block text-xs font-medium text-slate-200">
+                    Location / area in Delhi
+                    <input
+                      type="text"
+                      value={locationText}
+                      onChange={(e) => setLocationText(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                      placeholder="Street, landmark, ward, or locality name"
+                    />
+                  </label>
+                  <label className="block text-xs font-medium text-slate-200">
+                    Issue photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        setPhotoFile(file);
+                        setPhotoUrl(null);
+                        setAnalysis(null);
+                      }}
+                      className="mt-1 w-full text-xs text-slate-200 file:mr-3 file:rounded-full file:border-0 file:bg-slate-800 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-100 hover:file:bg-slate-700"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => void handleAnalyze()}
+                    className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
+                    disabled={analyzing}
+                  >
+                    {analyzing ? "Uploading and drafting..." : "Upload photo and draft complaint"}
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {photoUrl && (
+                    <Image
+                      src={photoUrl}
+                      alt="Complaint photo"
+                      width={640}
+                      height={360}
+                      className="w-full max-h-64 rounded-xl border border-slate-700 object-cover"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {analysis && (
+                <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-4 space-y-4">
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                      Detected issue
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-slate-50">
+                      {analysis.issue_type}
+                    </div>
+                    <div className="mt-1 text-[11px] text-slate-400">
+                      Severity: {analysis.severity} · Department: {analysis.department_name}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="block text-xs font-medium text-slate-200">
+                      Complaint title
+                      <input
+                        type="text"
+                        value={analysis.title}
+                        onChange={(e) =>
+                          setAnalysis({ ...analysis, title: e.target.value })
+                        }
+                        className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                      />
+                    </label>
+                    <label className="block text-xs font-medium text-slate-200">
+                      Complaint body
+                      <textarea
+                        value={analysis.description}
+                        onChange={(e) =>
+                          setAnalysis({ ...analysis, description: e.target.value })
+                        }
+                        className="mt-1 w-full min-h-[120px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400"
+                      />
+                    </label>
+                  </div>
+
+                  {props.complaintsEnabled !== false && (
+                    <button
+                      type="button"
+                      onClick={() => void handleSubmitComplaint()}
+                      className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60"
+                      disabled={submitting}
+                    >
+                      {submitting ? "Submitting complaint..." : "Pay ₹11 & submit complaint"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {message && <p className="text-sm text-green-700">{message}</p>}
-
-      {activeTab === "file" && (
-        <div className="space-y-4 text-left">
-          {preselectedPoliticianId && props.politicianSummary && (
-            <div className="border rounded-lg p-3 text-xs bg-slate-50 space-y-1">
-              <div className="font-semibold text-slate-800">
-                Target representative
-              </div>
-              <div className="text-slate-700">
-                {props.politicianSummary.name} ·{" "}
-                {props.politicianSummary.position}
-                {props.politicianSummary.constituencyName
-                  ? ` · ${props.politicianSummary.constituencyName}`
-                  : ""}
-              </div>
+      <div className="space-y-3 text-left">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              Public complaints
             </div>
-          )}
-          <div className="grid gap-3 md:grid-cols-[1fr,1fr]">
-            <div className="space-y-3">
-              {user ? (
-                <div className="text-xs text-slate-600">
-                  Filing as user #{user.id} ({user.state_code})
-                </div>
-              ) : (
-                <p className="text-xs text-red-600">
-                  You need to sign in before filing a complaint.
-                </p>
-              )}
-              <label className="block text-sm font-medium">
-                Location / area in Delhi
-                <input
-                  type="text"
-                  value={locationText}
-                  onChange={(e) => setLocationText(e.target.value)}
-                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                  placeholder="Street, landmark, ward, or locality name"
-                />
-              </label>
-              <label className="block text-sm font-medium">
-                Issue photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] ?? null;
-                    setPhotoFile(file);
-                    setPhotoUrl(null);
-                    setAnalysis(null);
-                  }}
-                  className="mt-1 w-full text-sm"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={() => void handleAnalyze()}
-                className="px-4 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-60"
-                disabled={analyzing}
-              >
-                {analyzing ? "Uploading and drafting..." : "Upload and draft complaint"}
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {photoUrl && (
-                <Image
-                  src={photoUrl}
-                  alt="Complaint photo"
-                  width={640}
-                  height={360}
-                  className="w-full rounded border object-cover max-h-64"
-                />
-              )}
-            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              Recent civic issues filed through neta. Personal details are kept private.
+            </p>
           </div>
-
-          {analysis && (
-            <div className="border rounded-lg p-4 space-y-4">
-              <div>
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Detected issue
-                </div>
-                <div className="font-semibold text-sm">{analysis.issue_type}</div>
-                <div className="text-xs text-slate-500">
-                  Severity: {analysis.severity} | Department: {analysis.department_name}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">
-                  Complaint title
-                  <input
-                    type="text"
-                    value={analysis.title}
-                    onChange={(e) =>
-                      setAnalysis({ ...analysis, title: e.target.value })
-                    }
-                    className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                  />
-                </label>
-                <label className="block text-sm font-medium">
-                  Complaint body
-                  <textarea
-                    value={analysis.description}
-                    onChange={(e) =>
-                      setAnalysis({ ...analysis, description: e.target.value })
-                    }
-                    className="mt-1 w-full border rounded px-3 py-2 text-sm min-h-[120px]"
-                  />
-                </label>
-              </div>
-
-              {props.complaintsEnabled !== false && (
-                <button
-                  type="button"
-                  onClick={() => void handleSubmitComplaint()}
-                  className="px-4 py-2 rounded bg-emerald-600 text-white text-sm disabled:opacity-60"
-                  disabled={submitting}
-                >
-                  {submitting ? "Submitting complaint..." : "Pay ₹11 & submit complaint"}
-                </button>
-              )}
+          {publicComplaints.length > 0 && (
+            <div className="text-[11px] text-slate-500">
+              {publicComplaints.length} posted
             </div>
           )}
         </div>
-      )}
 
-      {activeTab === "public" && (
-        <div className="space-y-4 text-left">
-          {publicLoading && <p className="text-sm text-slate-600">Loading complaints…</p>}
-          {!publicLoading && publicComplaints.length === 0 && (
-            <p className="text-sm text-slate-600">
-              No public complaints yet for Delhi.
-            </p>
-          )}
-          <div className="grid gap-4 md:grid-cols-2">
-            {publicComplaints.map((c) => (
-              <div key={c.id} className="border rounded-lg p-3 space-y-2 text-sm">
-                <div className="font-semibold">{c.title}</div>
-                <div className="text-xs text-slate-500">
-                  {new Date(c.created_at).toLocaleString()} · {c.location_text}
+        {publicLoading && (
+          <p className="text-xs text-slate-400">Loading complaints…</p>
+        )}
+        {!publicLoading && publicComplaints.length === 0 && (
+          <p className="text-xs text-slate-500">
+            No public complaints yet for Delhi.
+          </p>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {publicComplaints.map((c) => (
+            <div
+              key={c.id}
+              className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-950/80 p-3 text-xs text-slate-200"
+            >
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-50">
+                      {c.title}
+                    </div>
+                    <div className="mt-1 text-[11px] text-slate-400">
+                      {new Date(c.created_at).toLocaleString()} · {c.location_text}
+                    </div>
+                  </div>
+                  <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-200">
+                    {c.status}
+                  </span>
                 </div>
+
                 {c.photo_url && (
-                  <Image
-                    src={c.photo_url}
-                    alt={c.title}
-                    width={640}
-                    height={360}
-                    className="w-full rounded border object-cover max-h-40"
-                  />
-                )}
-                <div className="text-xs text-slate-600">
-                  Status: {c.status} · Severity: {c.severity}
-                </div>
-                {typeof c.politician_id === "number" && c.politician_id > 0 && (
-                  <div className="text-xs">
-                    <a
-                      href={`/politician/${c.politician_id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      View representative
-                    </a>
+                  <div className="mt-1">
+                    <Image
+                      src={c.photo_url}
+                      alt={c.title}
+                      width={640}
+                      height={360}
+                      className="w-full max-h-40 rounded-lg border border-slate-800 object-cover"
+                    />
                   </div>
                 )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {activeTab === "mine" && (
-        <div className="space-y-4 text-left">
+                <div className="text-[11px] text-slate-400">
+                  Severity: {c.severity}
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                {typeof c.politician_id === "number" && c.politician_id > 0 ? (
+                  <a
+                    href={`/politician/${c.politician_id}`}
+                    className="inline-flex items-center rounded-full border border-slate-700 px-3 py-1 font-medium text-slate-200 hover:border-amber-400 hover:text-amber-200"
+                  >
+                    View representative
+                  </a>
+                ) : (
+                  <span className="text-slate-500">Representative auto-routed</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3 text-left">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              My complaints
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              View the complaints you have filed and track their status.
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => void loadMyComplaints()}
-            className="px-4 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-60"
+            className="inline-flex items-center justify-center rounded-full bg-slate-800 px-3 py-1.5 text-[11px] font-medium text-slate-100 hover:bg-slate-700 disabled:opacity-60"
             disabled={myLoading}
           >
             {myLoading ? "Loading…" : "Load my complaints"}
           </button>
-
-          {myComplaints.length === 0 && !myLoading && (
-            <p className="text-sm text-slate-600">
-              No complaints found for this user ID.
-            </p>
-          )}
-
-          <div className="space-y-3">
-            {myComplaints.map((c) => (
-              <div key={c.id} className="border rounded-lg p-3 text-sm space-y-1">
-                <div className="font-semibold">{c.title}</div>
-                <div className="text-xs text-slate-500">
-                  {new Date(c.created_at).toLocaleString()} · {c.location_text}
-                </div>
-                <div className="text-xs text-slate-600">
-                  Status: {c.status} · Severity: {c.severity}
-                </div>
-                <div className="flex flex-wrap items-center gap-3 text-xs pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedComplaint(c)}
-                    className="rounded-full border px-3 py-1 text-[11px] font-medium hover:bg-slate-100"
-                  >
-                    View full complaint
-                  </button>
-                  {typeof c.politician_id === "number" && c.politician_id > 0 && (
-                    <a
-                      href={`/politician/${c.politician_id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      View representative
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
-      )}
+
+        {myComplaints.length === 0 && !myLoading && (
+          <p className="text-xs text-slate-500">
+            No complaints found for this user ID.
+          </p>
+        )}
+
+        <div className="space-y-3">
+          {myComplaints.map((c) => (
+            <div
+              key={c.id}
+              className="rounded-xl border border-slate-800 bg-slate-950/80 p-3 text-xs text-slate-200"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-sm font-semibold text-slate-50">
+                    {c.title}
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-400">
+                    {new Date(c.created_at).toLocaleString()} · {c.location_text}
+                  </div>
+                </div>
+                <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-200">
+                  {c.status}
+                </span>
+              </div>
+              <div className="mt-2 text-[11px] text-slate-400">
+                Severity: {c.severity}
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => setSelectedComplaint(c)}
+                  className="inline-flex items-center rounded-full border border-slate-700 px-3 py-1 font-medium text-slate-100 hover:border-amber-400 hover:text-amber-200"
+                >
+                  View full complaint
+                </button>
+                {typeof c.politician_id === "number" && c.politician_id > 0 && (
+                  <a
+                    href={`/politician/${c.politician_id}`}
+                    className="text-amber-300 hover:text-amber-200"
+                  >
+                    View representative
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {selectedComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl bg-white p-4 text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 p-4 text-slate-50">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h2 className="text-lg font-semibold">{selectedComplaint.title}</h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-[11px] text-slate-400">
                   {new Date(selectedComplaint.created_at).toLocaleString()} ·{" "}
                   {selectedComplaint.location_text}
                 </p>
@@ -572,22 +627,22 @@ export function ComplaintClient(props: Props) {
               <button
                 type="button"
                 onClick={() => setSelectedComplaint(null)}
-                className="ml-2 rounded-full border px-2 py-1 text-xs hover:bg-slate-100"
+                className="ml-2 inline-flex items-center justify-center rounded-full border border-slate-600 px-2 py-1 text-[11px] hover:border-amber-400 hover:text-amber-200"
               >
                 Close
               </button>
             </div>
-            <div className="mt-3 space-y-2 text-sm">
-              <div className="text-xs text-slate-600">
+            <div className="mt-3 space-y-3 text-sm">
+              <div className="text-[11px] text-slate-400">
                 Status: {selectedComplaint.status} · Severity: {selectedComplaint.severity}
               </div>
               {selectedComplaint.department_name && (
-                <div className="text-xs text-slate-600">
+                <div className="text-[11px] text-slate-400">
                   Department: {selectedComplaint.department_name}
                 </div>
               )}
               {selectedComplaint.description && (
-                <div className="mt-2 whitespace-pre-line text-sm text-slate-800">
+                <div className="mt-2 whitespace-pre-line text-sm text-slate-100">
                   {selectedComplaint.description}
                 </div>
               )}
@@ -598,16 +653,16 @@ export function ComplaintClient(props: Props) {
                     alt={selectedComplaint.title}
                     width={640}
                     height={360}
-                    className="w-full rounded border object-cover max-h-64"
+                    className="w-full max-h-64 rounded-lg border border-slate-700 object-cover"
                   />
                 </div>
               )}
               {typeof selectedComplaint.politician_id === "number" &&
                 selectedComplaint.politician_id > 0 && (
-                  <div className="mt-3 text-xs">
+                  <div className="mt-3 text-[11px]">
                     <a
                       href={`/politician/${selectedComplaint.politician_id}`}
-                      className="text-blue-600 hover:underline"
+                      className="text-amber-300 hover:text-amber-200"
                     >
                       View representative profile
                     </a>
