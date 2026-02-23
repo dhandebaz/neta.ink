@@ -1,5 +1,5 @@
 import { db } from "@/db/client";
-import { politicians, politician_mentions, states } from "@/db/schema";
+import { politicians, politician_mentions, states, civic_tasks } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { callHyperbrowserAgent } from "./router";
 
@@ -152,6 +152,19 @@ export async function fetchLivePoliticianUpdates(
         published_at: m.published_at ? new Date(m.published_at) : null
       }))
     );
+
+    // If AI detects sentiment negative, insert a row into civic_tasks
+    for (const m of toInsert) {
+      if (m.sentiment === "negative") {
+        await db.insert(civic_tasks).values({
+          title: `Verify controversy: ${m.title}`,
+          description: `A negative mention was detected: "${m.snippet}". Please verify the authenticity and details. URL: ${m.url}`,
+          points_reward: 20,
+          state_id: politicianRow.state_id,
+          status: "open"
+        });
+      }
+    }
   }
 
   return mentions;

@@ -9,9 +9,10 @@ import {
   serial,
   text,
   timestamp,
+  unique,
   uniqueIndex
 } from "drizzle-orm/pg-core";
-import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel, relations, sql } from "drizzle-orm";
 
 export const states = pgTable("states", {
   id: serial("id").primaryKey(),
@@ -50,8 +51,8 @@ export const politicians = pgTable("politicians", {
   wikipedia_url: text("wikipedia_url"),
   photo_url: text("photo_url"),
   criminal_cases: integer("criminal_cases").notNull().default(0),
-  assets_worth: bigint("assets_worth", { mode: "bigint" }).notNull().default(BigInt(0)),
-  liabilities: bigint("liabilities", { mode: "bigint" }).notNull().default(BigInt(0)),
+  assets_worth: bigint("assets_worth", { mode: "bigint" }).notNull().default(sql`0`),
+  liabilities: bigint("liabilities", { mode: "bigint" }).notNull().default(sql`0`),
   education: text("education"),
   age: integer("age"),
   rating: numeric("rating").notNull().default("0"),
@@ -117,40 +118,21 @@ export const users = pgTable("users", {
 
 export const volunteers = pgTable("volunteers", {
   id: serial("id").primaryKey(),
-  user_id: integer("user_id")
-    .notNull()
-    .references(() => users.id)
-    .unique(),
-  state_id: integer("state_id")
-    .notNull()
-    .references(() => states.id),
+  user_id: integer("user_id").notNull().unique().references(() => users.id),
+  state_id: integer("state_id").notNull().references(() => states.id),
   constituency_id: integer("constituency_id").references(() => constituencies.id),
   contribution_points: integer("contribution_points").notNull().default(0),
   status: text("status").notNull().default("active"),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
-export const votes = pgTable(
-  "votes",
-  {
-    id: serial("id").primaryKey(),
-    user_id: integer("user_id")
-      .notNull()
-      .references(() => users.id),
-    politician_id: integer("politician_id")
-      .notNull()
-      .references(() => politicians.id),
-    vote_type: text("vote_type").notNull(), // "up" or "down"
-    created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
-  },
-  (table) => ({
-    userPoliticianUnique: uniqueIndex("votes_user_politician_unique").on(
-      table.user_id,
-      table.politician_id
-    )
-  })
-);
+export const votes = pgTable("votes", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").notNull().references(() => users.id),
+  politician_id: integer("politician_id").notNull().references(() => politicians.id),
+  vote_type: text("vote_type").notNull(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+}, (t) => [unique("user_politician_vote_unq").on(t.user_id, t.politician_id)]);
 
 export const complaints = pgTable("complaints", {
   id: serial("id").primaryKey(),
@@ -209,9 +191,7 @@ export const rti_requests = pgTable("rti_requests", {
 
 export const politician_mentions = pgTable("politician_mentions", {
   id: serial("id").primaryKey(),
-  politician_id: integer("politician_id")
-    .notNull()
-    .references(() => politicians.id),
+  politician_id: integer("politician_id").notNull().references(() => politicians.id),
   source_type: text("source_type").notNull(),
   title: text("title").notNull(),
   snippet: text("snippet").notNull(),
