@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { AuthPhoneClient } from "@/components/AuthPhoneClient";
 import { VoterIdModal } from "@/components/VoterIdModal";
 
@@ -8,7 +9,7 @@ type Props = {
   politicianId: number;
   initialVotesUp: number;
   initialVotesDown: number;
-  initialRating: number;
+  initialRating: number | string;
   initialUserVote: "up" | "down" | null;
   isLoggedIn: boolean;
   isVoterVerified: boolean;
@@ -19,7 +20,11 @@ type VoteType = "up" | "down";
 export function VotingClient(props: Props) {
   const [votesUp, setVotesUp] = useState(props.initialVotesUp);
   const [votesDown, setVotesDown] = useState(props.initialVotesDown);
-  const [rating, setRating] = useState(props.initialRating);
+  const [rating, setRating] = useState(
+    typeof props.initialRating === "string"
+      ? Number(props.initialRating) || 0
+      : props.initialRating
+  );
   const [currentVote, setCurrentVote] = useState<VoteType | null>(
     props.initialUserVote
   );
@@ -56,7 +61,7 @@ export function VotingClient(props: Props) {
 
     const total = nextUp + nextDown;
     const nextRating =
-      total === 0 ? 0 : Number(((nextUp / total) * 5).toFixed(2));
+      total === 0 ? 0 : Number(((nextUp / total) * 5).toFixed(1));
 
     setVotesUp(nextUp);
     setVotesDown(nextDown);
@@ -128,24 +133,30 @@ export function VotingClient(props: Props) {
       const json = (await res.json().catch(() => null)) as
         | {
             success: boolean;
-            data?: {
-              votesUp: number;
-              votesDown: number;
-              rating: number;
-              userVote: VoteType;
-            };
+            votesUp?: number;
+            votesDown?: number;
+            rating?: number;
+            userVote?: VoteType;
             error?: string;
           }
         | null;
 
-      if (!res.ok || !json || !json.success || !json.data) {
+      if (
+        !res.ok ||
+        !json ||
+        !json.success ||
+        typeof json.votesUp !== "number" ||
+        typeof json.votesDown !== "number" ||
+        typeof json.rating !== "number" ||
+        !json.userVote
+      ) {
         throw new Error(json?.error || "Request failed");
       }
 
-      setVotesUp(json.data.votesUp);
-      setVotesDown(json.data.votesDown);
-      setRating(json.data.rating);
-      setCurrentVote(json.data.userVote);
+      setVotesUp(json.votesUp);
+      setVotesDown(json.votesDown);
+      setRating(json.rating);
+      setCurrentVote(json.userVote);
     } catch (err) {
       setVotesUp(previousState.votesUp);
       setVotesDown(previousState.votesDown);
@@ -162,40 +173,56 @@ export function VotingClient(props: Props) {
 
   return (
     <>
-      <div className="mt-2 space-y-2">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex w-full gap-2">
-            <button
-              type="button"
-              onClick={() => sendVote("up")}
-              disabled={loading}
-              className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition ${
-                upActive
-                  ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                  : "bg-slate-800 text-slate-100 hover:bg-slate-700"
-              } ${loading ? "cursor-not-allowed opacity-60" : ""}`}
-            >
-              Upvote
-            </button>
-            <button
-              type="button"
-              onClick={() => sendVote("down")}
-              disabled={loading}
-              className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition ${
-                downActive
-                  ? "bg-rose-500 text-slate-950 hover:bg-rose-400"
-                  : "bg-slate-800 text-slate-100 hover:bg-slate-700"
-              } ${loading ? "cursor-not-allowed opacity-60" : ""}`}
-            >
-              Downvote
-            </button>
-          </div>
-          <div className="text-xs text-slate-300 sm:text-right">
-            <div>
-              {rating.toFixed(1)} / 5 ({votesUp} up, {votesDown} down)
+      <div className="mt-2 space-y-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs text-slate-400">Citizen rating</div>
+            <div className="text-lg font-semibold text-slate-50">
+              {rating.toFixed(1)} / 5
             </div>
           </div>
+          <div className="text-[11px] text-slate-400">
+            {votesUp} up · {votesDown} down
+          </div>
         </div>
+
+        <div className="mt-2 flex gap-2">
+          <button
+            type="button"
+            onClick={() => sendVote("up")}
+            disabled={loading}
+            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition ${
+              upActive
+                ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+                : "bg-slate-800 text-slate-100 hover:bg-slate-700"
+            } ${loading ? "cursor-not-allowed opacity-60" : ""}`}
+          >
+            <ThumbsUp
+              className={`h-5 w-5 ${
+                upActive ? "fill-emerald-500 text-emerald-900" : "text-slate-200"
+              }`}
+            />
+            <span>Upvote</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => sendVote("down")}
+            disabled={loading}
+            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition ${
+              downActive
+                ? "bg-rose-500 text-slate-950 hover:bg-rose-400"
+                : "bg-slate-800 text-slate-100 hover:bg-slate-700"
+            } ${loading ? "cursor-not-allowed opacity-60" : ""}`}
+          >
+            <ThumbsDown
+              className={`h-5 w-5 ${
+                downActive ? "fill-rose-500 text-rose-900" : "text-slate-200"
+              }`}
+            />
+            <span>Downvote</span>
+          </button>
+        </div>
+
         {error && (
           <p className="text-xs text-red-400">
             {error}
@@ -203,7 +230,12 @@ export function VotingClient(props: Props) {
         )}
       </div>
 
-      {showAuth && <AuthPhoneClient onClose={closeAuth} />}
+      {showAuth && (
+        <AuthPhoneClient
+          onClose={closeAuth}
+          onSignedIn={() => window.location.reload()}
+        />
+      )}
       {showVoterModal && (
         <VoterIdModal
           onClose={() => setShowVoterModal(false)}

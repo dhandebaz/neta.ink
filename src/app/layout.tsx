@@ -80,6 +80,12 @@ export default function RootLayout(props: { children: React.ReactNode }) {
                   Rankings
                 </Link>
                 <Link
+                  href="/compare"
+                  className="rounded-full px-3 py-1 text-slate-200 hover:bg-slate-800 hover:text-slate-50"
+                >
+                  Compare
+                </Link>
+                <Link
                   href="/politicians"
                   className="hidden rounded-full px-3 py-1 text-slate-200 hover:bg-slate-800 hover:text-slate-50 sm:inline-flex"
                 >

@@ -125,7 +125,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
       const totalVotes = votesUp + votesDown;
       const rating =
-        totalVotes === 0 ? 0 : Number(((votesUp / totalVotes) * 5).toFixed(2));
+        totalVotes === 0 ? 0 : Number(((votesUp / totalVotes) * 5).toFixed(1));
 
       await tx
         .update(politicians)
@@ -146,7 +146,10 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
     return NextResponse.json({
       success: true,
-      data: result
+      votesUp: result.votesUp,
+      votesDown: result.votesDown,
+      rating: result.rating,
+      userVote: result.userVote
     });
   } catch (error) {
     console.error("Error recording vote", error);
