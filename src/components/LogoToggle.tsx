@@ -6,12 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function LogoToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState<boolean>(() => typeof window !== "undefined");
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const toggleTheme = () => {
     setIsLoading(true);

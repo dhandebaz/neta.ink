@@ -3,6 +3,7 @@ import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { and, eq, or } from "drizzle-orm";
 import { setUserSession } from "@/lib/auth/session";
+import { ensureDelhiState } from "@/lib/states";
 
 type Body = {
   firebaseUid: string;
@@ -34,6 +35,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    await ensureDelhiState();
+
     const rows = await db
       .select()
       .from(users)
