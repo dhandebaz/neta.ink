@@ -191,8 +191,21 @@ export function AuthPhoneClient(props: Props) {
       } else {
         window.location.reload();
       }
-    } catch {
-      setError("OTP verification failed. Please try again.");
+    } catch (err: any) {
+      console.error("OTP verification error:", err);
+
+      const code = err?.code as string | undefined;
+      const message = typeof err?.message === "string" ? err.message : "";
+
+      if (code === "auth/invalid-verification-code") {
+        setError("Invalid OTP. Please check and try again.");
+      } else if (code === "auth/missing-verification-code" || code === "auth/code-expired") {
+        setError("OTP has expired. Please request a new OTP.");
+      } else if (message) {
+        setError(message.replace("Firebase: ", "").replace(" (auth/internal-error)", ""));
+      } else {
+        setError("OTP verification failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
