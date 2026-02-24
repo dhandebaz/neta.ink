@@ -34,7 +34,7 @@ export default async function DashboardPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-4">
         <div className="w-full max-w-md space-y-4 text-center">
-          <h1 className="text-2xl font-semibold text-slate-50">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
             Sign in to view your civic dashboard
           </h1>
           <div className="mt-2 flex justify-center">

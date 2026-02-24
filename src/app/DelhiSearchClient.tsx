@@ -51,7 +51,7 @@ export function DelhiSearchClient() {
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="text"
-          className="min-h-[44px] flex-1 rounded-xl border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100 placeholder:text-slate-500"
+          className="min-h-[44px] flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
           placeholder="Search by Delhi Assembly constituency (e.g. Chandni Chowk)"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -70,14 +70,14 @@ export function DelhiSearchClient() {
         </button>
       </div>
 
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
 
       {result && (
-        <div className="mt-4 space-y-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-left">
+        <div className="mt-4 space-y-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/70 p-4 text-left">
           <div>
-            <h2 className="text-sm font-semibold text-slate-100">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Constituency:{" "}
-              <span className="font-normal text-slate-200">
+              <span className="font-normal text-slate-700 dark:text-slate-200">
                 {result.constituencyName ?? "Not found"}
               </span>
             </h2>
@@ -95,25 +95,25 @@ export function DelhiSearchClient() {
 function RepCard({ title, rep }: { title: string; rep: any | null }) {
   if (!rep) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-300">
-        <div className="mb-1 text-sm font-semibold text-slate-100">{title}</div>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-3 text-xs text-slate-600 dark:text-slate-300">
+        <div className="mb-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</div>
         <p>No representative data found yet for this constituency.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/70 p-3 text-xs">
+    <div className="flex flex-col justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/70 p-3 text-xs">
       <div className="space-y-1">
-        <div className="text-sm font-semibold text-slate-100">{title}</div>
-        <div className="text-sm font-medium text-slate-50">{rep.name}</div>
-        <div className="text-slate-300">
-        {rep.party ? `${rep.party}` : "Party unknown"}
-      </div>
-        <div className="text-slate-400">
+        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</div>
+        <div className="text-sm font-medium text-slate-800 dark:text-slate-50">{rep.name}</div>
+        <div className="text-slate-600 dark:text-slate-300">
+          {rep.party ? `${rep.party}` : "Party unknown"}
+        </div>
+        <div className="text-slate-500 dark:text-slate-400">
           Criminal cases: {rep.criminal_cases ?? 0}
         </div>
-        <div className="text-slate-400">
+        <div className="text-slate-500 dark:text-slate-400">
           Rating: {rep.rating ?? 0} / 5 ({rep.votes_up ?? 0} up,{" "}
           {rep.votes_down ?? 0} down)
         </div>
@@ -122,7 +122,7 @@ function RepCard({ title, rep }: { title: string; rep: any | null }) {
         <div className="mt-3 flex flex-wrap gap-2">
           <a
             href={`/politician/${rep.id}`}
-            className="inline-flex min-h-[36px] flex-1 items-center justify-center rounded-full border border-slate-600 px-3 text-[11px] font-medium text-slate-100 hover:bg-slate-800"
+            className="inline-flex min-h-[36px] flex-1 items-center justify-center rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-transparent px-3 text-[11px] font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             View profile
           </a>
@@ -136,7 +136,7 @@ function RepCard({ title, rep }: { title: string; rep: any | null }) {
             href={`/rti?politicianId=${rep.id}&targetType=${encodeURIComponent(
               rep.position === "MP" || rep.position === "MLA" ? rep.position : "MLA"
             )}`}
-            className="inline-flex min-h-[36px] flex-1 items-center justify-center rounded-full bg-slate-100 px-3 text-[11px] font-medium text-slate-900 hover:bg-slate-200"
+            className="inline-flex min-h-[36px] flex-1 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-100 px-3 text-[11px] font-medium text-slate-900 hover:bg-slate-300 dark:hover:bg-slate-200"
           >
             Draft RTI
           </a>

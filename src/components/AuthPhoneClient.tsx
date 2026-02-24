@@ -35,11 +35,28 @@ export function AuthPhoneClient(props: Props) {
 
     if (recaptchaContainerRef.current) {
       try {
+        // Clear any existing verifier instance
+        if ((window as any).netaRecaptchaVerifier) {
+          try {
+            (window as any).netaRecaptchaVerifier.clear();
+          } catch (e) {
+            // Ignore clear errors
+          }
+          (window as any).netaRecaptchaVerifier = undefined;
+        }
+
         const verifier = new RecaptchaVerifier(
           auth,
           recaptchaContainerRef.current,
           {
-            size: "invisible"
+            size: "invisible",
+            callback: () => {
+              // reCAPTCHA solved, allow signInWithPhoneNumber.
+            },
+            "expired-callback": () => {
+              // Response expired. Ask user to solve reCAPTCHA again.
+              setError("reCAPTCHA expired. Please try again.");
+            }
           }
         );
         (window as any).netaRecaptchaVerifier = verifier;

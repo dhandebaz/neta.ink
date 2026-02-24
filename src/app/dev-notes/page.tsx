@@ -43,12 +43,12 @@ export default async function DevNotesPage() {
     <main className="min-h-screen px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
         <header className="space-y-1">
-          <h1 className="text-2xl font-semibold">Developer notes</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">Developer notes</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Internal documentation for local and staging setup.
           </p>
         </header>
-        <section className="space-y-2 text-sm text-slate-100">
+        <section className="space-y-2 text-sm text-slate-800 dark:text-slate-100">
           {lines.map((line) => (
             <p key={line}>{line}</p>
           ))}
