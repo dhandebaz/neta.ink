@@ -175,13 +175,23 @@ export function AuthPhoneClient(props: Props) {
         })
       });
 
-      const json = (await res.json()) as {
-        success: boolean;
-        error?: string;
-      };
+      let json: { success: boolean; error?: string } | null = null;
 
-      if (!res.ok || !json.success) {
-        setError(json.error || "Sign-in failed.");
+      try {
+        json = (await res.json()) as {
+          success: boolean;
+          error?: string;
+        };
+      } catch (parseError) {
+        console.error("Error parsing /api/auth/phone response JSON", parseError);
+      }
+
+      if (!res.ok || !json || !json.success) {
+        const message =
+          json && typeof json.error === "string"
+            ? json.error
+            : "Sign-in failed. Please try again.";
+        setError(message);
         return;
       }
 

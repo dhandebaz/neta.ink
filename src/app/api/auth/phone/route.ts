@@ -33,59 +33,71 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const rows = await db
-    .select()
-    .from(users)
-    .where(
-      or(
-        eq(users.firebase_uid, firebaseUid),
-        eq(users.phone_number, phoneNumber)
+  try {
+    const rows = await db
+      .select()
+      .from(users)
+      .where(
+        or(
+          eq(users.firebase_uid, firebaseUid),
+          eq(users.phone_number, phoneNumber)
+        )
       )
-    )
-    .limit(1);
+      .limit(1);
 
-  const existing = rows[0] ?? null;
-  let user;
+    const existing = rows[0] ?? null;
+    let user;
 
-  if (existing) {
-    const updatedName = existing.name ?? displayName ?? null;
+    if (existing) {
+      const updatedName = existing.name ?? displayName ?? null;
 
-    const [updated] = await db
-      .update(users)
-      .set({
-        firebase_uid: firebaseUid,
-        phone_number: phoneNumber,
-        name: updatedName ?? undefined
-      })
-      .where(eq(users.id, existing.id))
-      .returning();
+      const [updated] = await db
+        .update(users)
+        .set({
+          firebase_uid: firebaseUid,
+          phone_number: phoneNumber,
+          name: updatedName ?? undefined
+        })
+        .where(eq(users.id, existing.id))
+        .returning();
 
-    user = updated;
-  } else {
-    const [created] = await db
-      .insert(users)
-      .values({
-        firebase_uid: firebaseUid,
-        phone_number: phoneNumber,
-        name: displayName ?? null,
-        state_code: "DL"
-      })
-      .returning();
+      user = updated;
+    } else {
+      const [created] = await db
+        .insert(users)
+        .values({
+          firebase_uid: firebaseUid,
+          phone_number: phoneNumber,
+          name: displayName ?? null,
+          state_code: "DL"
+        })
+        .returning();
 
-    user = created;
-  }
-
-  const res = NextResponse.json({
-    success: true,
-    data: {
-      id: user.id,
-      name: user.name,
-      state_code: user.state_code,
-      is_system_admin: user.is_system_admin
+      user = created;
     }
-  });
 
-  setUserSession(res, user.id);
+    const res = NextResponse.json({
+      success: true,
+      data: {
+        id: user.id,
+        name: user.name,
+        state_code: user.state_code,
+        is_system_admin: user.is_system_admin
+      }
+    });
 
-  return res;
+    try {
+      setUserSession(res, user.id);
+    } catch (error) {
+      console.error("Error setting user session cookie", error);
+    }
+
+    return res;
+  } catch (error) {
+    console.error("Error in /api/auth/phone", error);
+    return NextResponse.json(
+      { success: false, error: "Sign-in failed. Please try again." },
+      { status: 500 }
+    );
+  }
 }
