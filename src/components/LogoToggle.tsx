@@ -6,8 +6,17 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function LogoToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState<boolean>(() => typeof window !== "undefined");
+  const [mounted, setMounted] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => {
+      setMounted(true);
+    });
+    return () => {
+      window.cancelAnimationFrame(id);
+    };
+  }, []);
 
   const toggleTheme = () => {
     setIsLoading(true);
@@ -19,9 +28,8 @@ export default function LogoToggle() {
   };
 
   if (!mounted) {
-    // Return a placeholder to avoid hydration mismatch
     return (
-      <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/80 px-3 py-1 text-sm font-semibold tracking-tight text-slate-50 ring-1 ring-slate-700 opacity-0">
+      <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/80 px-3 py-1 text-sm font-semibold tracking-tight text-slate-50 ring-1 ring-slate-700">
         <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-xs font-bold text-slate-950">
           n
         </span>

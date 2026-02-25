@@ -4,6 +4,8 @@ import { constituencies, politicians, states } from "@/db/schema";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import Link from "next/link";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "neta politicians – Delhi MPs and MLAs",
   description:

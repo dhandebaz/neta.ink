@@ -13,6 +13,7 @@ import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { VotingClient } from "./VotingClient";
+import ShareButtonClient from "@/components/ShareButtonClient";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -253,7 +254,14 @@ export default async function PoliticianPage({ params }: PageProps) {
     <div className="space-y-6">
       <div className="w-full max-w-3xl space-y-6">
         <header className="space-y-2">
-          <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-50">{politician.name}</h1>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-50">{politician.name}</h1>
+            <ShareButtonClient
+              title={politician.name}
+              text={`Check out ${politician.name} on NetaInk. Rating: ${ratingNumber}/5`}
+              url={`https://neta.ink/politician/${politician.id}`}
+            />
+          </div>
           <p className="text-sm text-slate-600 dark:text-slate-300">
             {politician.position}{" "}
             {constituencyName ? `· ${constituencyName}` : null}{" "}

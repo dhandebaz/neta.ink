@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDelhiRankings } from "@/lib/rankings";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "neta rankings – Delhi MPs and MLAs",
   description:

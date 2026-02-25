@@ -413,6 +413,7 @@ export async function analyzeComplaint(
   try {
     const response = await callAiText({
       prompt,
+      imageUrl: photoUrl,
       temperature: 0.2,
       maxTokens: 2048
     });

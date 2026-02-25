@@ -7,6 +7,8 @@ import { DevOverlay } from "@/components/DevOverlay";
 import { CurrentUserProvider } from "@/components/CurrentUserProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import LogoToggle from "@/components/LogoToggle";
+import { ChatbotWrapper } from "@/components/ChatbotWrapper";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -111,7 +113,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
               </div>
             </div>
           </header>
-          <main className="min-h-screen bg-slate-50 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 transition-colors duration-300">
+          <main className="min-h-screen bg-slate-50 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 transition-colors duration-300 pb-20 sm:pb-0">
             <div className="mx-auto max-w-5xl px-4 py-4 sm:px-6 sm:py-6 lg:py-8">
               {props.children}
             </div>
@@ -137,6 +139,8 @@ export default function RootLayout(props: { children: React.ReactNode }) {
               </p>
             </div>
           </footer>
+          <ChatbotWrapper />
+          <MobileBottomNav />
           <PwaRegister />
           <DevOverlay />
         </ThemeProvider>

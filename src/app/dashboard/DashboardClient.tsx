@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 type DashboardUser = {
   id: number;
@@ -130,15 +131,13 @@ export function DashboardClient({ user, complaints, rtis }: Props) {
                           {rti.status}
                         </span>
                       </div>
-                      {hasPdf && (
-                        <a
-                          href={rti.pdf_url ?? undefined}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-3 flex w-full items-center justify-center rounded-lg bg-blue-600 py-3 font-medium text-white"
+                      {rti.status === "paid" && (
+                        <Link
+                          href={`/rti/${rti.id}/document`}
+                          className="mt-3 flex w-full items-center justify-center rounded-lg bg-slate-900 py-3 font-medium text-white hover:bg-slate-800 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
                         >
-                          📥 Download RTI PDF
-                        </a>
+                          📄 View Document
+                        </Link>
                       )}
                     </div>
                   );

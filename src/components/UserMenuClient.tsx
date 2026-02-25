@@ -88,39 +88,70 @@ export function UserMenuClient(props: Props) {
   return (
     <>
       {user ? (
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-700 dark:text-slate-200 transition-colors">
-            {label}
-          </span>
-          {stateLabel && (
-            <button
-              type="button"
-              onClick={() => setShowStateModal(true)}
-              className="inline-flex items-center justify-center rounded-full border border-slate-300 px-2 py-0.5 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              {stateLabel}
-            </button>
-          )}
-          <Link
-            href="/volunteer"
-            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-emerald-600 px-3 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/70 dark:text-emerald-300 dark:hover:bg-emerald-500/20 transition-colors"
-          >
-            Volunteer
-          </Link>
-          <Link
-            href="/dashboard"
-            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-slate-300 px-4 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            Dashboard
-          </Link>
-          <button
-            type="button"
-            onClick={signOut}
-            disabled={signingOut}
-            className="inline-flex h-11 min-w-[44px] items-center justify-center rounded-full border border-slate-300 px-3 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 disabled:opacity-60 transition-colors"
-          >
-            {signingOut ? "Signing out..." : "Sign out"}
-          </button>
+        <div className="relative">
+          <details className="group">
+            <summary className="list-none">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/80 px-3 py-1 text-[11px] font-medium text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-slate-50 dark:bg-slate-100 dark:text-slate-900">
+                  {user.name && user.name.trim().length > 0
+                    ? user.name.trim()[0]?.toUpperCase()
+                    : user.phone_number && user.phone_number.length >= 4
+                    ? user.phone_number.slice(-2)
+                    : "u"}
+                </span>
+                <span className="hidden sm:inline">
+                  {label}
+                </span>
+              </button>
+            </summary>
+
+            <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white py-2 text-[11px] shadow-lg dark:border-slate-700 dark:bg-slate-900">
+              <div className="px-3 pb-2 text-[11px] text-slate-500 dark:text-slate-400">
+                <div className="font-medium text-slate-800 dark:text-slate-100">
+                  {label}
+                </div>
+                {stateLabel && (
+                  <button
+                    type="button"
+                    onClick={() => setShowStateModal(true)}
+                    className="mt-1 inline-flex items-center rounded-full border border-slate-200 px-2 py-0.5 text-[10px] text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+                  >
+                    State: {stateLabel}
+                  </button>
+                )}
+              </div>
+
+              <Link
+                href="/dashboard"
+                className="flex items-center px-3 py-1.5 text-[11px] text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/volunteer"
+                className="flex items-center px-3 py-1.5 text-[11px] text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
+              >
+                Volunteer tasks
+              </Link>
+
+              <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+
+              <button
+                type="button"
+                onClick={signOut}
+                disabled={signingOut}
+                className="flex w-full items-center justify-between px-3 py-1.5 text-[11px] text-rose-600 hover:bg-rose-50 disabled:opacity-60 dark:text-rose-400 dark:hover:bg-rose-500/10"
+              >
+                <span>Sign out</span>
+                <span className="text-[10px] text-rose-400 dark:text-rose-300">
+                  {signingOut ? "…" : ""}
+                </span>
+              </button>
+            </div>
+          </details>
         </div>
       ) : (
         <button

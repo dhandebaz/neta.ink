@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 
 type Props = {
   onClose?: () => void;
@@ -146,9 +147,11 @@ export function VoterIdModal({ onClose, onVerified }: Props) {
 
           {previewUrl && (
             <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
-              <img
+              <Image
                 src={previewUrl}
                 alt="Selected Voter ID"
+                width={800}
+                height={512}
                 className="max-h-64 w-full object-cover"
               />
             </div>
@@ -181,4 +184,3 @@ export function VoterIdModal({ onClose, onVerified }: Props) {
     document.body
   );
 }
-
