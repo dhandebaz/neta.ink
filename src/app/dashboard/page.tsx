@@ -1,5 +1,5 @@
 import { db } from "@/db/client";
-import { complaints, rti_requests, users } from "@/db/schema";
+import { complaints, rti_requests, users, states } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth/session";
 import { AuthPhoneClient } from "@/components/AuthPhoneClient";
@@ -7,7 +7,7 @@ import { DashboardClient } from "./DashboardClient";
 
 type DashboardUser = Pick<
   typeof users.$inferSelect,
-  "id" | "name" | "phone_number" | "api_key" | "api_calls_this_month" | "api_limit"
+  "id" | "name" | "phone_number" | "api_key" | "api_calls_this_month" | "api_limit" | "state_code"
 >;
 
 type DashboardComplaint = {
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
 
   const userId = user.id;
 
-  const [userComplaints, userRtis] = await Promise.all([
+  const [userComplaints, userRtis, activeStates] = await Promise.all([
     db
       .select({
         id: complaints.id,
@@ -70,7 +70,11 @@ export default async function DashboardPage() {
       })
       .from(rti_requests)
       .where(eq(rti_requests.user_id, userId))
-      .orderBy(desc(rti_requests.created_at))
+      .orderBy(desc(rti_requests.created_at)),
+    db
+      .select({ code: states.code, name: states.name })
+      .from(states)
+      .where(eq(states.is_enabled, true))
   ]);
 
   const dashboardUser: DashboardUser = {
@@ -79,7 +83,8 @@ export default async function DashboardPage() {
     phone_number: user.phone_number,
     api_key: user.api_key ?? null,
     api_calls_this_month: user.api_calls_this_month ?? 0,
-    api_limit: user.api_limit ?? 0
+    api_limit: user.api_limit ?? 0,
+    state_code: user.state_code ?? null
   };
 
   const complaintsData: DashboardComplaint[] = userComplaints.map((c) => ({
@@ -100,6 +105,11 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <DashboardClient user={dashboardUser} complaints={complaintsData} rtis={rtisData} />
+    <DashboardClient
+      user={dashboardUser}
+      complaints={complaintsData}
+      rtis={rtisData}
+      activeStates={activeStates}
+    />
   );
 }

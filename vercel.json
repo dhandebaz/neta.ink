@@ -1,1 +1,0 @@
-{ "crons": [{ "path": "/api/cron/daily-sweep", "schedule": "0 2 * * *" }] }

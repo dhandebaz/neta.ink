@@ -1,25 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDelhiRankings } from "@/lib/rankings";
+import { notFound } from "next/navigation";
+import { db } from "@/db/client";
+import { states } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { getRankingsByState } from "@/lib/rankings";
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: "neta rankings – Delhi MPs and MLAs",
-  description:
-    "See how Delhi MPs and MLAs rank based on criminal cases, declared assets, and citizen votes on neta.",
-  openGraph: {
-    type: "website",
-    url: "https://neta.ink/rankings/delhi",
-    title: "neta rankings – Delhi MPs and MLAs",
-    description:
-      "Explore an experimental ranking of Delhi MPs and MLAs using criminal cases, assets, and citizen votes on neta.",
-    images: ["/og-default.jpg"]
-  },
-  alternates: {
-    canonical: "https://neta.ink/rankings/delhi"
-  }
-};
+export async function generateMetadata({ params }: { params: Promise<{ stateCode: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const code = resolvedParams.stateCode.toUpperCase();
+  const [stateRow] = await db.select().from(states).where(eq(states.code, code)).limit(1);
+
+  if (!stateRow) return {};
+
+  return {
+    title: `neta rankings – ${stateRow.name} MPs and MLAs`,
+    description: `See how ${stateRow.name} MPs and MLAs rank based on criminal cases, declared assets, and citizen votes on neta.`,
+    openGraph: {
+      type: "website",
+      url: `https://neta.ink/rankings/${code.toLowerCase()}`,
+      title: `neta rankings – ${stateRow.name} MPs and MLAs`,
+      description: `Explore an experimental ranking of ${stateRow.name} MPs and MLAs using criminal cases, assets, and citizen votes on neta.`,
+      images: ["/og-default.jpg"]
+    },
+    alternates: {
+      canonical: `https://neta.ink/rankings/${code.toLowerCase()}`
+    }
+  };
+}
 
 function formatCrores(assets: bigint): string {
   const crores = Number(assets) / 10_000_000;
@@ -27,23 +37,29 @@ function formatCrores(assets: bigint): string {
   return crores.toFixed(2);
 }
 
-export default async function DelhiRankingsPage() {
-  const rows = await getDelhiRankings(100);
+export default async function StateRankingsPage({ params }: { params: Promise<{ stateCode: string }> }) {
+  const resolvedParams = await params;
+  const code = resolvedParams.stateCode.toUpperCase();
+  
+  const [stateRow] = await db.select().from(states).where(eq(states.code, code)).limit(1);
+  if (!stateRow) return notFound();
+
+  const rows = await getRankingsByState(stateRow.id, 100);
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-5xl space-y-6">
         <header className="space-y-3 text-center">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">Delhi Politicians – Worst to Best</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">{stateRow.name} Politicians – Worst to Best</h1>
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            Experimental ranking of Delhi MPs and MLAs by cases, assets and citizen votes.
+            Experimental ranking of {stateRow.name} MPs and MLAs by cases, assets and citizen votes.
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Lower scores are worse. Use this as a directional civic signal, not a legal verdict.
           </p>
           <p className="text-xs">
             <Link
-              href="/politicians/delhi"
+              href={`/politicians/${code.toLowerCase()}`}
               className="inline-flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900/80 px-3 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-100 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-200"
             >
               View as raw list
@@ -53,7 +69,7 @@ export default async function DelhiRankingsPage() {
 
         {rows.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 p-4 text-center text-sm text-slate-600 dark:text-slate-300">
-            No Delhi politicians found in the database yet. Once Delhi data is seeded, rankings
+            No {stateRow.name} politicians found in the database yet. Once {stateRow.name} data is seeded, rankings
             will appear here automatically.
           </div>
         ) : (

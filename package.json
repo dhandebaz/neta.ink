@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.31",
-    "@aws-sdk/client-s3": "^3.614.0",
+    "@aws-sdk/client-s3": "^3.997.0",
     "@aws-sdk/s3-request-presigner": "^3.614.0",
     "@google-cloud/recaptcha-enterprise": "^6.4.0",
     "@neondatabase/serverless": "^0.9.0",
@@ -22,6 +22,7 @@
     "drizzle-kit": "^0.24.0",
     "drizzle-orm": "^0.33.0",
     "firebase": "^10.12.0",
+    "firebase-admin": "^13.6.1",
     "framer-motion": "^11.0.0",
     "jspdf": "^2.5.1",
     "lucide-react": "^0.378.0",
@@ -35,11 +36,13 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/node": "^20.14.0",
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
+    "dotenv": "^17.3.1",
     "eslint": "^9.11.1",
     "eslint-config-next": "16.1.0",
     "postcss": "^8.4.38",

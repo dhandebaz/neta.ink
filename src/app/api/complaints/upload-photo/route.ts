@@ -29,6 +29,13 @@ export async function POST(req: NextRequest) {
   try {
     const url = await uploadFileToR2(key, file, contentType);
 
+    if (!url) {
+      return NextResponse.json(
+        { success: false, error: "Upload failed", url: null },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       url

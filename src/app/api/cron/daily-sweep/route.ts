@@ -4,9 +4,20 @@ import { politicians } from "@/db/schema";
 import { asc, eq } from "drizzle-orm";
 import { fetchLivePoliticianUpdates } from "@/lib/ai/hyperTasks";
 
+// Force Next.js to never cache this API route
+export const dynamic = "force-dynamic";
+// Extend Vercel Serverless timeout to 5 minutes (300 seconds)
+export const maxDuration = 300;
+
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const querySecret = req.nextUrl.searchParams.get("secret");
+  const expectedSecret = process.env.CRON_SECRET;
+
+  if (
+    authHeader !== `Bearer ${expectedSecret}` &&
+    querySecret !== expectedSecret
+  ) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 

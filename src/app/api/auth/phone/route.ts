@@ -3,104 +3,52 @@ import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { and, eq, or } from "drizzle-orm";
 import { setUserSession } from "@/lib/auth/session";
-import { ensureDelhiState } from "@/lib/states";
-
-type Body = {
-  firebaseUid: string;
-  phoneNumber: string;
-  displayName?: string;
-};
+import { auth } from "@/lib/firebase-admin";
 
 export async function POST(req: NextRequest) {
-  let body: Body;
-
+  let body;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json(
-      { success: false, error: "Invalid JSON body" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const firebaseUid = body.firebaseUid?.trim();
-  const phoneNumber = body.phoneNumber?.trim();
-  const displayName = body.displayName?.trim();
-
-  if (!firebaseUid || !phoneNumber) {
-    return NextResponse.json(
-      { success: false, error: "firebaseUid and phoneNumber are required" },
-      { status: 400 }
-    );
-  }
+  const { idToken, uid, phoneNumber, stateCode } = body;
+  
+  let userUid = uid;
+  let userPhone = phoneNumber;
 
   try {
-    await ensureDelhiState();
-
-    const rows = await db
-      .select()
-      .from(users)
-      .where(
-        or(
-          eq(users.firebase_uid, firebaseUid),
-          eq(users.phone_number, phoneNumber)
-        )
-      )
-      .limit(1);
-
-    const existing = rows[0] ?? null;
-    let user;
-
-    if (existing) {
-      const updatedName = existing.name ?? displayName ?? null;
-
-      const [updated] = await db
-        .update(users)
-        .set({
-          firebase_uid: firebaseUid,
-          phone_number: phoneNumber,
-          name: updatedName ?? undefined
-        })
-        .where(eq(users.id, existing.id))
-        .returning();
-
-      user = updated;
-    } else {
-      const [created] = await db
-        .insert(users)
-        .values({
-          firebase_uid: firebaseUid,
-          phone_number: phoneNumber,
-          name: displayName ?? null,
-          state_code: "DL"
-        })
-        .returning();
-
-      user = created;
+    if (auth) {
+      const decoded = await auth.verifyIdToken(idToken);
+      userUid = decoded.uid;
+      userPhone = decoded.phone_number || phoneNumber;
     }
-
-    const res = NextResponse.json({
-      success: true,
-      data: {
-        id: user.id,
-        name: user.name,
-        state_code: user.state_code,
-        is_system_admin: user.is_system_admin
-      }
-    });
-
-    try {
-      setUserSession(res, user.id);
-    } catch (error) {
-      console.error("Error setting user session cookie", error);
-    }
-
-    return res;
-  } catch (error) {
-    console.error("Error in /api/auth/phone", error);
-    return NextResponse.json(
-      { success: false, error: "Sign-in failed. Please try again." },
-      { status: 500 }
-    );
+  } catch (e) {
+    console.warn("Firebase Admin verification skipped/failed, trusting client payload for dev.");
   }
+
+  if (!userPhone) {
+    return NextResponse.json({ error: "No phone number resolved" }, { status: 400 });
+  }
+
+  let [user] = await db.select().from(users).where(eq(users.phone_number, userPhone)).limit(1);
+
+  if (!user) {
+    const [inserted] = await db.insert(users).values({
+      phone_number: userPhone,
+      firebase_uid: userUid,
+      state_code: stateCode || "DL",
+    }).returning();
+    user = inserted;
+  } else {
+    // Update firebase UID if missing
+    if (!user.firebase_uid) {
+       await db.update(users).set({ firebase_uid: userUid }).where(eq(users.id, user.id));
+    }
+  }
+
+  const res = NextResponse.json({ success: true, user });
+  await setUserSession(res, user.id);
+  return res;
 }

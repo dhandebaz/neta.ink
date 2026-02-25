@@ -1,56 +1,52 @@
 import nodemailer from "nodemailer";
 
-type SendEmailOptions = {
+export async function sendCivicEmail(to: string, cc: string[], subject: string, html: string, attachments?: any[]) {
+  const host = process.env.SMTP_HOST;
+  const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !user || !pass) {
+    console.warn("SMTP credentials missing. Email was not sent.");
+    return false;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+  });
+
+  try {
+    await transporter.sendMail({
+      from: `"NetaInk Civic Engine" <${user}>`,
+      to,
+      cc,
+      subject,
+      html,
+      attachments,
+    });
+    return true;
+  } catch (error) {
+    console.error("SMTP Error:", error);
+    return false;
+  }
+}
+
+// Added for backward compatibility
+export async function sendEmail(options: {
   to: string;
   cc?: string[];
   subject: string;
   html: string;
   attachments?: any[];
-};
-
-export async function sendEmail(options: SendEmailOptions) {
-  const host = process.env.SMTP_HOST;
-  const portRaw = process.env.SMTP_PORT;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-
-  if (!host || !user) {
-    console.warn("SMTP not configured; email payload:", {
-      to: options.to,
-      cc: options.cc,
-      subject: options.subject,
-      html: options.html,
-      attachments: options.attachments
-    });
-    return;
-  }
-
-  const portNumber = portRaw ? Number(portRaw) : 587;
-  const secure = portNumber === 465;
-
-  const transporter = nodemailer.createTransport({
-    host,
-    port: portNumber,
-    secure,
-    auth: pass
-      ? {
-          user,
-          pass
-        }
-      : undefined
-  });
-
-  try {
-    await transporter.sendMail({
-      from: user,
-      to: options.to,
-      cc: options.cc,
-      subject: options.subject,
-      html: options.html,
-      attachments: options.attachments
-    });
-  } catch (error) {
-    console.error("Error sending email", error);
-  }
+}) {
+  return sendCivicEmail(
+    options.to,
+    options.cc || [],
+    options.subject,
+    options.html,
+    options.attachments
+  );
 }
-

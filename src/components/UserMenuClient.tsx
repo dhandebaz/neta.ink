@@ -124,6 +124,23 @@ export function UserMenuClient(props: Props) {
                 )}
               </div>
 
+              {stateLabel && (
+                <>
+                  <Link
+                    href="/rankings"
+                    className="flex items-center px-3 py-1.5 text-[11px] text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
+                  >
+                    Rankings
+                  </Link>
+                  <Link
+                    href="/politicians"
+                    className="flex items-center px-3 py-1.5 text-[11px] text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
+                  >
+                    Politicians
+                  </Link>
+                </>
+              )}
+
               <Link
                 href="/dashboard"
                 className="flex items-center px-3 py-1.5 text-[11px] text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"

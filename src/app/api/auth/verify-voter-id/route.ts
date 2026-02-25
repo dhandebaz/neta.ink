@@ -94,17 +94,18 @@ export async function POST(req: NextRequest) {
   const extension = contentType.split("/")[1] || "jpg";
   const key = `kyc/voter-ids/${currentUser.id}-${Date.now()}.${extension}`;
 
-  let imageUrl: string;
+  let imageUrl: string | null = null;
 
   try {
-    imageUrl = await uploadBufferToR2(key, buffer, contentType);
+    imageUrl = await uploadBufferToR2(buffer, key, contentType);
+
+    if (!imageUrl) {
+      throw new Error("Upload returned null");
+    }
   } catch (error) {
     console.error("Error uploading voter ID image to R2", error);
     return NextResponse.json(
-      {
-        success: false,
-        error: "Upload failed. Please try again."
-      },
+      { success: false, error: "Failed to upload image. Please try again." },
       { status: 500 }
     );
   }

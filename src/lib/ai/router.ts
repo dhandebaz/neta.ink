@@ -77,29 +77,40 @@ export async function callHyperbrowserAgent(taskDescription: string): Promise<Ai
     throw new AiUnavailableError("Global AI is disabled");
   }
 
-  const apiKey = process.env.HYPERBROWSER_API_KEY;
-  if (!apiKey) {
-    throw new AiUnavailableError("HYPERBROWSER_API_KEY is not configured");
-  }
-
   try {
-    const response = await fetch("https://api.hyperbrowser.ai/v1/agent", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({ task: taskDescription }),
+    // 1. Generate search query
+    const queryPrompt = `Extract a short, highly effective search engine query (3-6 words) to solve this task: ${taskDescription}. Return ONLY the search query.`;
+    const queryRes = await callGeminiText({ prompt: queryPrompt });
+    const searchQuery = queryRes.text.replace(/["']/g, '').trim();
+
+    // 2. Scrape DuckDuckGo HTML (Bypasses JS/Bot checks)
+    const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(searchQuery)}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
     });
+    const html = await res.text();
+    
+    // Strip tags and whitespace to get raw text for Gemini
+    const bodyText = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '') 
+                         .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') 
+                         .replace(/<[^>]+>/g, ' ') 
+                         .replace(/\s+/g, ' ') 
+                         .trim() 
+                         .substring(0, 15000); 
 
-    if (!response.ok) {
-      throw new Error(`Hyperbrowser API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { text: data.result || JSON.stringify(data), model: "hyperbrowser-agent" };
+    // 3. Extract JSON strictly from the text
+    const finalPrompt = `
+    TASK: ${taskDescription}
+    
+    Here is the raw text scraped from a search engine for the query "${searchQuery}":
+    ---
+    ${bodyText}
+    ---
+    Complete the TASK using ONLY the information provided above. Ensure you follow any formatting (like STRICT JSON) requested in the task. Do not include markdown formatting if strict JSON is requested.
+    `;
+    
+    return await callGeminiText({ prompt: finalPrompt, maxTokens: 2000 });
   } catch (error) {
-    console.error("Hyperbrowser error:", error);
+    console.error("Free Web Agent error:", error);
     throw error;
   }
 }

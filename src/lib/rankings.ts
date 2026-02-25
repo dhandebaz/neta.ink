@@ -1,8 +1,8 @@
 import { db } from "@/db/client";
-import { constituencies, politicians, states } from "@/db/schema";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { constituencies, politicians } from "@/db/schema";
+import { and, asc, inArray, eq } from "drizzle-orm";
 
-export type DelhiRankingRow = {
+export type RankingRow = {
   id: number;
   name: string;
   position: "MLA" | "MP";
@@ -35,18 +35,8 @@ function computeScore(input: {
   return Number(raw.toFixed(2));
 }
 
-export async function getDelhiRankings(limit = 50): Promise<DelhiRankingRow[]> {
+export async function getRankingsByState(stateId: number, limit = 50): Promise<RankingRow[]> {
   try {
-    const [delhi] = await db
-      .select()
-      .from(states)
-      .where(eq(states.code, "DL"))
-      .limit(1);
-
-    if (!delhi) {
-      return [];
-    }
-
     const rows = await db
       .select({
         id: politicians.id,
@@ -63,7 +53,7 @@ export async function getDelhiRankings(limit = 50): Promise<DelhiRankingRow[]> {
       .from(politicians)
       .where(
         and(
-          eq(politicians.state_id, delhi.id),
+          eq(politicians.state_id, stateId),
           inArray(politicians.position, ["MLA", "MP"])
         )
       )
@@ -91,7 +81,7 @@ export async function getDelhiRankings(limit = 50): Promise<DelhiRankingRow[]> {
       constituencyMap = new Map(constRows.map((c) => [c.id, c.name]));
     }
 
-    const scored: DelhiRankingRow[] = rows.map((row) => {
+    const scored: RankingRow[] = rows.map((row) => {
       const score = computeScore({
         rating: Number(row.rating ?? 0),
         criminal_cases: row.criminal_cases,
@@ -124,7 +114,7 @@ export async function getDelhiRankings(limit = 50): Promise<DelhiRankingRow[]> {
 
     return scored.slice(0, limit);
   } catch (error) {
-    console.error("Error loading Delhi rankings", error);
+    console.error("Error loading rankings by state", error);
     return [];
   }
 }

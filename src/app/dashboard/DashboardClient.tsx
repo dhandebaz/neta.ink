@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Loader2, Check } from "lucide-react";
 
 type DashboardUser = {
   id: number;
@@ -11,6 +12,7 @@ type DashboardUser = {
   api_key: string | null;
   api_calls_this_month: number;
   api_limit: number;
+  state_code?: string | null;
 };
 
 type DashboardComplaint = {
@@ -34,9 +36,10 @@ type Props = {
   user: DashboardUser;
   complaints: DashboardComplaint[];
   rtis: DashboardRti[];
+  activeStates?: { code: string; name: string }[];
 };
 
-type TabKey = "rtis" | "complaints" | "developer";
+type TabKey = "rtis" | "complaints" | "developer" | "settings";
 
 function formatDate(value: Date): string {
   if (!(value instanceof Date)) {
@@ -48,8 +51,33 @@ function formatDate(value: Date): string {
   return value.toLocaleDateString("en-IN");
 }
 
-export function DashboardClient({ user, complaints, rtis }: Props) {
+export function DashboardClient({ user, complaints, rtis, activeStates }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>("rtis");
+  const [name, setName] = useState(user.name || "");
+  const [stateCode, setStateCode] = useState(user.state_code || "DL");
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setShowSaved(false);
+    try {
+      const res = await fetch("/api/user/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, stateCode }),
+      });
+      if (res.ok) {
+        setShowSaved(true);
+        setTimeout(() => {
+             window.location.reload();
+        }, 1000);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   let userLabel = "citizen";
   if (user.name && user.name.trim().length > 0) {
@@ -61,7 +89,8 @@ export function DashboardClient({ user, complaints, rtis }: Props) {
   const tabs: { key: TabKey; label: string }[] = [
     { key: "rtis", label: "My RTIs" },
     { key: "complaints", label: "My complaints" },
-    { key: "developer", label: "Developer API" }
+    { key: "developer", label: "Developer API" },
+    { key: "settings", label: "Profile" }
   ];
 
   return (
@@ -77,7 +106,7 @@ export function DashboardClient({ user, complaints, rtis }: Props) {
         </header>
 
         <div className="rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/70 p-1 text-xs text-slate-800 dark:text-slate-100">
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-4 gap-1">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               return (
@@ -144,6 +173,67 @@ export function DashboardClient({ user, complaints, rtis }: Props) {
                 })}
               </div>
             )}
+          </section>
+        )}
+
+        {activeTab === "settings" && (
+          <section className="space-y-4">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/70 p-6">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-4">
+                Profile Settings
+              </h2>
+              <form onSubmit={handleSave} className="space-y-4 max-w-md">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:placeholder-slate-500"
+                    placeholder="Enter your full name"
+                  />
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Used for your official RTI applications.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    My State
+                  </label>
+                  <select
+                    value={stateCode}
+                    onChange={(e) => setStateCode(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50"
+                  >
+                    {activeStates?.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="pt-2 flex items-center gap-3">
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="inline-flex h-10 items-center justify-center rounded-full bg-slate-900 px-6 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-70 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="animate-spin h-4 w-4" />
+                    ) : (
+                      "Save Changes"
+                    )}
+                  </button>
+                  {showSaved && (
+                    <span className="flex items-center gap-1 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                      <Check className="h-4 w-4" /> Saved!
+                    </span>
+                  )}
+                </div>
+              </form>
+            </div>
           </section>
         )}
 

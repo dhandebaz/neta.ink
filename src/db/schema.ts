@@ -93,6 +93,15 @@ export const civic_officials = pgTable("civic_officials", {
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const state_waitlist = pgTable("state_waitlist", {
+  id: serial("id").primaryKey(),
+  state_code: text("state_code").notNull(),
+  phone_number: text("phone_number").notNull(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+}, (t) => ({
+  statePhoneUnq: unique("state_phone_unq").on(t.state_code, t.phone_number)
+}));
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   phone_number: text("phone_number").notNull().unique(),

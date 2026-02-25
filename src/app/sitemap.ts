@@ -1,52 +1,86 @@
-import type { MetadataRoute } from "next";
+import { MetadataRoute } from "next";
 import { db } from "@/db/client";
-import { politicians } from "@/db/schema";
+import { politicians, states } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://neta.ink";
-  const now = new Date();
 
-  const staticRoutes: MetadataRoute.Sitemap = [
+  const staticRoutes = [
     {
-      url: `${baseUrl}/`,
-      lastModified: now
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 1,
     },
     {
       url: `${baseUrl}/complaints`,
-      lastModified: now
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/rti`,
-      lastModified: now
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
     },
     {
-      url: `${baseUrl}/rankings/delhi`,
-      lastModified: now
+      url: `${baseUrl}/volunteer`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
     },
     {
-      url: `${baseUrl}/politicians/delhi`,
-      lastModified: now
+      url: `${baseUrl}/compare`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/about`,
-      lastModified: now
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/faq`,
-      lastModified: now
-    }
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
   ];
 
   try {
-    const politicianRows = await db.select().from(politicians);
+    const activeStates = await db.select().from(states).where(eq(states.is_enabled, true));
 
-    const politicianRoutes: MetadataRoute.Sitemap = politicianRows.map((pol) => ({
+    const stateRoutes = activeStates.flatMap((state) => [
+      {
+        url: `${baseUrl}/rankings/${state.code.toLowerCase()}`,
+        lastModified: new Date(),
+        changeFrequency: "daily" as const,
+        priority: 0.9,
+      },
+      {
+        url: `${baseUrl}/politicians/${state.code.toLowerCase()}`,
+        lastModified: new Date(),
+        changeFrequency: "daily" as const,
+        priority: 0.8,
+      }
+    ]);
+
+    const allPoliticians = await db.select({ id: politicians.id, updated_at: politicians.updated_at }).from(politicians);
+
+    const politicianRoutes = allPoliticians.map((pol) => ({
       url: `${baseUrl}/politician/${pol.id}`,
-      lastModified: now
+      lastModified: pol.updated_at || new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.7,
     }));
 
-    return [...staticRoutes, ...politicianRoutes];
-  } catch {
+    return [...staticRoutes, ...stateRoutes, ...politicianRoutes];
+  } catch (error) {
+    console.warn("Failed to generate dynamic sitemap (DB likely offline during build). Returning static routes only.", error);
     return staticRoutes;
   }
 }

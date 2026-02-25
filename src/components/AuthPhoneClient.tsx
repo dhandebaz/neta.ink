@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth, hasFirebaseConfig } from "@/lib/firebase";
 
@@ -22,6 +23,7 @@ export function AuthPhoneClient(props: Props) {
   const [confirmation, setConfirmation] =
     useState<import("firebase/auth").ConfirmationResult | null>(null);
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
@@ -158,9 +160,12 @@ export function AuthPhoneClient(props: Props) {
       const user = cred.user;
       const token = await user.getIdToken();
 
-      const firebaseUid = user.uid;
-      const displayName = user.displayName || null;
-      const phoneNumber = user.phoneNumber || phone;
+      const body = JSON.stringify({
+        idToken: token,
+        uid: user.uid,
+        phoneNumber: user.phoneNumber || phone,
+        stateCode: "DL"
+      });
 
       const res = await fetch("/api/auth/phone", {
         method: "POST",
@@ -168,11 +173,7 @@ export function AuthPhoneClient(props: Props) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          firebaseUid,
-          phoneNumber,
-          displayName: displayName || undefined
-        })
+        body
       });
 
       let json: { success: boolean; error?: string } | null = null;
@@ -196,10 +197,9 @@ export function AuthPhoneClient(props: Props) {
       }
 
       setMessage("Signed in successfully.");
+      router.refresh();
       if (props.onSignedIn) {
         props.onSignedIn();
-      } else {
-        window.location.reload();
       }
     } catch (err: any) {
       console.error("OTP verification error:", err);
