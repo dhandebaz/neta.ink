@@ -103,7 +103,7 @@ export async function callHyperbrowserAgent(prompt: string): Promise<AiTextRespo
 
   // 3. Process with Gemini 
   const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || ""); 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
 
   const finalPrompt = ` 
   ${prompt} 
