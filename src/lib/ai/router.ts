@@ -80,25 +80,43 @@ export async function callHyperbrowserAgent(prompt: string): Promise<AiTextRespo
 
   console.log("🚀 Firing Free DDG + Gemini Scraper...");
 
-  // 1. Extract State Name for Search 
-  const stateMatch = prompt.match(/MLAs for the (.*?) Legislative/i); 
+  // 1. Extract State Name 
+  const stateMatch = prompt.match(/MLAs for the (.*?) Legislative/i) || prompt.match(/state of (.*?)\./i); 
   const stateName = stateMatch ? stateMatch[1].trim() : "Indian"; 
-  const searchQuery = `"List of constituencies of the ${stateName} Legislative Assembly" Wikipedia`; 
-  const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(searchQuery)}`; 
-
-  // 2. Scrape DuckDuckGo (HTML version bypasses JS blocks) 
+  
+  // 2. Target MyNeta directly 
   let scrapedText = ""; 
   try { 
-    const res = await fetch(ddgUrl, { 
-      headers: { 
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" 
+    let targetUrl = ""; 
+    
+    if (stateName.toLowerCase() === "delhi") { 
+      targetUrl = "https://www.myneta.info/Delhi2025/index.php?action=summary&subAction=winner_analyzed&sort=candidate#summary"; 
+    } else { 
+      const searchQuery = `site:myneta.info "Winning Candidates" ${stateName} Assembly Election`; 
+      const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(searchQuery)}`; 
+      const ddgRes = await fetch(ddgUrl, { headers: { "User-Agent": "Mozilla/5.0" } }); 
+      const ddgHtml = await ddgRes.text(); 
+      
+      const linkMatch = ddgHtml.match(/href="([^"]*myneta\.info[^"]*winner_analyzed[^"]*)"/i) || ddgHtml.match(/href="([^"]*myneta\.info[^"]*)"/i); 
+      if (linkMatch && linkMatch[1]) { 
+        let rawLink = linkMatch[1]; 
+        if (rawLink.includes("uddg=")) rawLink = decodeURIComponent(rawLink.split("uddg=")[1].split("&")[0]); 
+        targetUrl = rawLink; 
       } 
-    }); 
-    const html = await res.text(); 
-    // Strip HTML tags and compress whitespace to save LLM tokens 
-    scrapedText = html.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').substring(0, 20000); 
+    } 
+
+    if (targetUrl) { 
+      console.log(`🎯 Target Locked: Fetching MyNeta -> ${targetUrl}`); 
+      const myNetaRes = await fetch(targetUrl, { headers: { "User-Agent": "Mozilla/5.0" } }); 
+      const myNetaHtml = await myNetaRes.text(); 
+      
+      // ONLY strip scripts and styles to save tokens, but PRESERVE structural HTML and <img> tags 
+      scrapedText = myNetaHtml.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '') 
+                              .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') 
+                              .replace(/\s+/g, ' ').substring(0, 30000); 
+    } 
   } catch (e) { 
-    console.warn("DDG Scrape failed, relying entirely on Gemini internal knowledge."); 
+    console.warn("MyNeta Scrape failed, falling back to Gemini knowledge."); 
   } 
 
   // 3. Process with Gemini 

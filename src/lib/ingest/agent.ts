@@ -9,6 +9,7 @@ type AgentMlaRow = {
   constituency: string;
   criminal_cases: number;
   assets_worth_in_rupees: number;
+  photo_url: string;
 };
 
 type AgentIngestionResult = {
@@ -56,13 +57,13 @@ export async function runAgenticPoliticianIngestion(
   }
 
   const prompt = 
-    `TASK: Extract sitting MLAs for the ${state.name} Legislative Assembly in India.\n` + 
+    `TASK: Extract sitting MLAs for the ${state.name} Legislative Assembly in India from the provided HTML.\n` + 
     `INSTRUCTIONS:\n` + 
-    `1. Search for "List of current MLAs of ${state.name}" or "List of constituencies of ${state.name} Legislative Assembly".\n` + 
-    `2. Extract exactly 20-25 current sitting MLAs to start.\n` + 
-    `3. Try to find their criminal cases and assets (e.g., via MyNeta). If you cannot find financial data quickly, DO NOT FAIL. Just set 'criminal_cases' to 0 and 'assets_worth_in_rupees' to 0.\n` + 
-    `4. You MUST output ONLY a valid, strict JSON array. Do not include markdown fences (\`\`\`). Do not include introductory text.\n` + 
-    `FORMAT: [{"name": "MLA Name", "party": "Party Name", "constituency": "Constituency Name", "criminal_cases": 0, "assets_worth_in_rupees": 0}]`;
+    `1. Extract exactly 20-30 current sitting MLAs to start.\n` + 
+    `2. Find their criminal cases and assets.\n` + 
+    `3. CRITICAL: Extract their photo URL from the <img> tag next to their name. If the URL is relative (e.g., 'images/candidate/123.jpg'), prepend 'https://www.myneta.info/' or the base URL to it.\n` + 
+    `4. Output ONLY a valid, strict JSON array. Do not include markdown fences.\n` + 
+    `FORMAT: [{"name": "MLA Name", "party": "Party", "constituency": "Constituency", "criminal_cases": 0, "assets_worth_in_rupees": 0, "photo_url": "https://..."}]`;
 
   const result = await callHyperbrowserAgent(prompt);
   let text = result.text.trim();
@@ -105,6 +106,7 @@ export async function runAgenticPoliticianIngestion(
       typeof anyItem.constituency === "string" ? anyItem.constituency.trim() : "";
     const casesNumber = normalizeAgentNumber(anyItem.criminal_cases);
     const assetsNumber = normalizeAgentNumber(anyItem.assets_worth_in_rupees);
+    const photoUrl = typeof anyItem.photo_url === "string" ? anyItem.photo_url.trim() : "";
 
     if (!name || !constituency || casesNumber === null || assetsNumber === null) {
       continue;
@@ -115,7 +117,8 @@ export async function runAgenticPoliticianIngestion(
       party,
       constituency,
       criminal_cases: Math.max(0, Math.round(casesNumber)),
-      assets_worth_in_rupees: assetsNumber
+      assets_worth_in_rupees: assetsNumber,
+      photo_url: photoUrl
     });
   }
 
@@ -178,7 +181,8 @@ export async function runAgenticPoliticianIngestion(
         constituency_id: constituencyId,
         criminal_cases: row.criminal_cases,
         assets_worth: BigInt(Math.round(row.assets_worth_in_rupees)),
-        liabilities: BigInt(0)
+        liabilities: BigInt(0),
+        photo_url: row.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.name)}&background=random&color=fff&size=256`,
       });
     }
 
