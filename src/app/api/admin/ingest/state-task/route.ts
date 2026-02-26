@@ -123,7 +123,6 @@ export async function POST(req: NextRequest) {
           position: "MLA",
           party: mla.party || "Independent",
           constituency_id: constituency.id,
-          ingestion_status: "completed", // Assuming default or not needed per instructions
         });
         count++;
       }
