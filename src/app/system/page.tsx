@@ -12,39 +12,10 @@ import { desc, eq, gte } from "drizzle-orm";
 import { SystemDashboardClient } from "./SystemDashboardClient";
 import { isAiComplaintsEnabled, isAiRtiEnabled } from "@/lib/ai/flags";
 
-type PageProps = {
-  searchParams?: Promise<{
-    [key: string]: string | string[] | undefined;
-  }>;
-};
+import { getCurrentUser } from "@/lib/auth/session";
 
-export default async function SystemPage({ searchParams }: PageProps) {
-  const params = (await searchParams) ?? {};
-  const rawAdminId =
-    typeof params.adminUserId === "string" ? params.adminUserId : undefined;
-
-  const parsedAdminId = rawAdminId ? Number(rawAdminId) : NaN;
-  const adminUserId =
-    Number.isFinite(parsedAdminId) && parsedAdminId > 0
-      ? parsedAdminId
-      : null;
-
-  if (!adminUserId) {
-    return (
-      <main className="min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-xl text-center space-y-2">
-          <h1 className="text-2xl font-bold">System Admin</h1>
-          <p className="text-sm text-red-600">Access denied</p>
-        </div>
-      </main>
-    );
-  }
-
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, adminUserId))
-    .limit(1);
+export default async function SystemPage() {
+  const user = await getCurrentUser();
 
   if (!user || !user.is_system_admin) {
     return (
@@ -56,6 +27,8 @@ export default async function SystemPage({ searchParams }: PageProps) {
       </main>
     );
   }
+
+  const adminUserId = user.id;
 
   const allStatesRows = await db.select().from(states);
 

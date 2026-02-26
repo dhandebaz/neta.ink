@@ -11,33 +11,16 @@ type PostBody = {
   taskType?: TaskType;
 };
 
-async function requireAdmin(req: NextRequest) {
-  const adminIdHeader = req.headers.get("x-admin-user-id");
+import { getCurrentUser } from "@/lib/auth/session";
 
-  if (!adminIdHeader) {
-    return { error: NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 }) };
-  }
-
-  const adminId = Number(adminIdHeader);
-
-  if (!Number.isFinite(adminId) || adminId <= 0) {
-    return {
-      error: NextResponse.json({ success: false, error: "Invalid admin id" }, { status: 400 })
-    };
-  }
-
-  const [user] =
-    (await db
-      .select()
-      .from(users)
-      .where(eq(users.id, adminId))
-      .limit(1)) ?? [];
+async function requireAdmin() {
+  const user = await getCurrentUser();
 
   if (!user || !user.is_system_admin) {
     return { error: NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 }) };
   }
 
-  return { adminId };
+  return { adminId: user.id };
 }
 
 async function ensureState(code: string) {
@@ -58,7 +41,7 @@ async function ensureState(code: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const adminCheck = await requireAdmin(req);
+  const adminCheck = await requireAdmin();
 
   if ("error" in adminCheck) {
     return adminCheck.error;

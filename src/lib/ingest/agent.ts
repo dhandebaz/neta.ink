@@ -55,11 +55,14 @@ export async function runAgenticPoliticianIngestion(
     throw new Error("State not found");
   }
 
-  const prompt =
-    `You are a political data extraction agent. Browse reliable sources (like MyNeta or Wikipedia) to find the current sitting MLAs for the ${state.name} Legislative Assembly. ` +
-    "Return a STRICT JSON array of objects with the following keys: " +
-    "'name' (string), 'party' (string), 'constituency' (string), 'criminal_cases' (integer), 'assets_worth_in_rupees' (number). " +
-    "Extract at least 20 MLAs to start. Do not include markdown fences in your response.";
+  const prompt = 
+    `TASK: Extract sitting MLAs for the ${state.name} Legislative Assembly in India.\n` + 
+    `INSTRUCTIONS:\n` + 
+    `1. Search for "List of current MLAs of ${state.name}" or "List of constituencies of ${state.name} Legislative Assembly".\n` + 
+    `2. Extract exactly 20-25 current sitting MLAs to start.\n` + 
+    `3. Try to find their criminal cases and assets (e.g., via MyNeta). If you cannot find financial data quickly, DO NOT FAIL. Just set 'criminal_cases' to 0 and 'assets_worth_in_rupees' to 0.\n` + 
+    `4. You MUST output ONLY a valid, strict JSON array. Do not include markdown fences (\`\`\`). Do not include introductory text.\n` + 
+    `FORMAT: [{"name": "MLA Name", "party": "Party Name", "constituency": "Constituency Name", "criminal_cases": 0, "assets_worth_in_rupees": 0}]`;
 
   const result = await callHyperbrowserAgent(prompt);
   let text = result.text.trim();

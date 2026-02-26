@@ -1,3 +1,4 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { generateText, generateObject } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { z } from "zod";
@@ -72,47 +73,56 @@ export async function callGeminiText(request: AiTextRequest): Promise<AiTextResp
   }
 }
 
-export async function callHyperbrowserAgent(taskDescription: string): Promise<AiTextResponse> {
+export async function callHyperbrowserAgent(prompt: string): Promise<AiTextResponse> {
   if (!isGlobalAiEnabled()) {
     throw new AiUnavailableError("Global AI is disabled");
   }
 
-  try {
-    // 1. Generate search query
-    const queryPrompt = `Extract a short, highly effective search engine query (3-6 words) to solve this task: ${taskDescription}. Return ONLY the search query.`;
-    const queryRes = await callGeminiText({ prompt: queryPrompt });
-    const searchQuery = queryRes.text.replace(/["']/g, '').trim();
+  console.log("🚀 Firing Free DDG + Gemini Scraper...");
 
-    // 2. Scrape DuckDuckGo HTML (Bypasses JS/Bot checks)
-    const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(searchQuery)}`, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
-    });
-    const html = await res.text();
-    
-    // Strip tags and whitespace to get raw text for Gemini
-    const bodyText = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '') 
-                         .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') 
-                         .replace(/<[^>]+>/g, ' ') 
-                         .replace(/\s+/g, ' ') 
-                         .trim() 
-                         .substring(0, 15000); 
+  // 1. Extract State Name for Search 
+  const stateMatch = prompt.match(/MLAs for the (.*?) Legislative/i); 
+  const stateName = stateMatch ? stateMatch[1].trim() : "Indian"; 
+  const searchQuery = `"List of constituencies of the ${stateName} Legislative Assembly" Wikipedia`; 
+  const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(searchQuery)}`; 
 
-    // 3. Extract JSON strictly from the text
-    const finalPrompt = `
-    TASK: ${taskDescription}
-    
-    Here is the raw text scraped from a search engine for the query "${searchQuery}":
-    ---
-    ${bodyText}
-    ---
-    Complete the TASK using ONLY the information provided above. Ensure you follow any formatting (like STRICT JSON) requested in the task. Do not include markdown formatting if strict JSON is requested.
-    `;
-    
-    return await callGeminiText({ prompt: finalPrompt, maxTokens: 2000 });
-  } catch (error) {
-    console.error("Free Web Agent error:", error);
-    throw error;
-  }
+  // 2. Scrape DuckDuckGo (HTML version bypasses JS blocks) 
+  let scrapedText = ""; 
+  try { 
+    const res = await fetch(ddgUrl, { 
+      headers: { 
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" 
+      } 
+    }); 
+    const html = await res.text(); 
+    // Strip HTML tags and compress whitespace to save LLM tokens 
+    scrapedText = html.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').substring(0, 20000); 
+  } catch (e) { 
+    console.warn("DDG Scrape failed, relying entirely on Gemini internal knowledge."); 
+  } 
+
+  // 3. Process with Gemini 
+  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || ""); 
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
+
+  const finalPrompt = ` 
+  ${prompt} 
+  
+  === SCRAPED WEB CONTEXT === 
+  ${scrapedText} 
+  =========================== 
+  
+  If the scraped context doesn't contain the exact data, use your highly trained internal knowledge base to generate the array of politicians. 
+  Remember: Output ONLY a valid JSON array. No markdown, no \`\`\`json tags, no explanations. 
+  `; 
+
+  const result = await model.generateContent(finalPrompt); 
+  let text = result.response.text(); 
+  
+  // Clean any residual markdown formatting 
+  text = text.replace(/```json/gi, "").replace(/```/g, "").trim(); 
+  
+  return { text, model: "gemini-text" }; 
 }
 
 export async function callAiText(request: AiTextRequest): Promise<AiTextResponse> {
