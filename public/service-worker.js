@@ -30,6 +30,9 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  // Guard clause: Do not cache non-http requests (e.g. chrome-extension://)
+  if (!event.request.url.startsWith("http")) return;
+
   const req = event.request;
 
   if (req.method !== "GET") {
@@ -57,4 +60,3 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
-

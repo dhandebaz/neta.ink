@@ -7,6 +7,10 @@ import { WaitlistFormClient } from "@/components/WaitlistFormClient";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Neta.ink | The Civic Accountability Engine",
+};
+
 export default async function HomePage() {
   const activeStates = await db.select().from(states).where(eq(states.is_enabled, true));
   const inactiveStates = await db.select({ code: states.code, name: states.name }).from(states).where(eq(states.is_enabled, false)).orderBy(states.name);

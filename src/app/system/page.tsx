@@ -9,9 +9,7 @@ import {
   usage_events
 } from "@/db/schema";
 import { desc, eq, gte } from "drizzle-orm";
-import { AdminActionsClient } from "./AdminActionsClient";
-import { AiFlagsClient } from "./AiFlagsClient";
-import { StatesAdminClient } from "./StatesAdminClient";
+import { SystemDashboardClient } from "./SystemDashboardClient";
 import { isAiComplaintsEnabled, isAiRtiEnabled } from "@/lib/ai/flags";
 
 type PageProps = {
@@ -166,212 +164,15 @@ export default async function SystemPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl space-y-8">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-bold">System Admin</h1>
-          <p className="text-sm text-slate-600">
-            Internal view for state status and core data.
-          </p>
-          <p className="text-xs text-slate-500">
-            Signed in as admin user ID {adminUserId}
-          </p>
-        </header>
-
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">States</h2>
-          <p className="text-sm text-slate-600">
-            Manage which states are enabled and track ingestion tasks.
-          </p>
-          <StatesAdminClient
-            adminUserId={adminUserId}
-            initialStates={stateSummaries}
-          />
-        </section>
-
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Delhi State Status</h2>
-          {!delhi ? (
-            <p className="text-sm text-red-600">
-              Delhi not initialized. Run ensureDelhiState in backend utilities
-              or via an admin task before using ingestion and seeding.
-            </p>
-          ) : (
-            <div className="border rounded-lg p-3 text-sm text-left space-y-1">
-              <div>
-                <span className="font-semibold">Code:</span> {delhi.code}
-              </div>
-              <div>
-                <span className="font-semibold">Name:</span> {delhi.name}
-              </div>
-              <div>
-                <span className="font-semibold">Enabled:</span>{" "}
-                {delhi.is_enabled ? "Yes" : "No"}
-              </div>
-              <div>
-                <span className="font-semibold">Ingestion status:</span>{" "}
-                {delhi.ingestion_status}
-              </div>
-              <div>
-                <span className="font-semibold">Created at:</span>{" "}
-                {delhi.created_at?.toISOString() ?? "Unknown"}
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">AI features</h2>
-          <p className="text-sm text-slate-600">
-            Toggle AI helpers on or off. When off, citizens can still file RTIs and complaints manually.
-          </p>
-          <AiFlagsClient
-            adminUserId={adminUserId}
-            initialAiRtiEnabled={aiRtiEnabled}
-            initialAiComplaintsEnabled={aiComplaintsEnabled}
-          />
-        </section>
-
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Data Overview</h2>
-          {!delhi || !delhiCounts ? (
-            <p className="text-sm text-slate-600">
-              Delhi state not initialized; counts are not available yet.
-            </p>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
-              <div className="border rounded-lg p-3 text-left">
-                <div className="font-semibold">Constituencies (Delhi)</div>
-                <div className="text-2xl font-bold">
-                  {delhiCounts.constituencies}
-                </div>
-              </div>
-              <div className="border rounded-lg p-3 text-left">
-                <div className="font-semibold">Politicians (Delhi)</div>
-                <div className="text-2xl font-bold">
-                  {delhiCounts.politicians}
-                </div>
-              </div>
-              <div className="border rounded-lg p-3 text-left">
-                <div className="font-semibold">Complaints (Delhi)</div>
-                <div className="text-2xl font-bold">
-                  {delhiCounts.complaints}
-                </div>
-              </div>
-              <div className="border rounded-lg p-3 text-left">
-                <div className="font-semibold">RTI Requests (Delhi)</div>
-                <div className="text-2xl font-bold">
-                  {delhiCounts.rtiRequests}
-                </div>
-              </div>
-              <div className="border rounded-lg p-3 text-left">
-                <div className="font-semibold">Users (state_code = DL)</div>
-                <div className="text-2xl font-bold">
-                  {delhiCounts.users}
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Usage and Limits (last 24 hours)</h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
-            <div className="border rounded-lg p-3 text-left">
-              <div className="font-semibold">AI requests (RTI + complaints)</div>
-              <div className="text-2xl font-bold">{totalAiRequests}</div>
-            </div>
-            <div className="border rounded-lg p-3 text-left">
-              <div className="font-semibold">Complaints created</div>
-              <div className="text-2xl font-bold">{totalComplaintsCreated}</div>
-            </div>
-            <div className="border rounded-lg p-3 text-left">
-              <div className="font-semibold">RTIs created</div>
-              <div className="text-2xl font-bold">{totalRtisCreated}</div>
-            </div>
-            <div className="border rounded-lg p-3 text-left">
-              <div className="font-semibold">429 responses</div>
-              <div className="text-2xl font-bold">{totalRateLimited}</div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold">Latest usage events</h3>
-            {latestEvents.length === 0 ? (
-              <p className="text-xs text-slate-600">
-                No usage events recorded in the last 24 hours.
-              </p>
-            ) : (
-              <div className="overflow-x-auto rounded-lg border">
-                <table className="min-w-full text-xs">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                        Time
-                      </th>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                        User
-                      </th>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                        Task
-                      </th>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                        State
-                      </th>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                        Endpoint
-                      </th>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {latestEvents.map((event) => (
-                      <tr key={event.id} className="border-t">
-                        <td className="px-3 py-2 align-top text-slate-800">
-                          {event.created_at?.toISOString() ?? ""}
-                        </td>
-                        <td className="px-3 py-2 align-top text-slate-800">
-                          {event.user_id ?? "anon"}
-                        </td>
-                        <td className="px-3 py-2 align-top text-slate-800">
-                          {event.task_type}
-                        </td>
-                        <td className="px-3 py-2 align-top text-slate-800">
-                          {event.state_code ?? ""}
-                        </td>
-                        <td className="px-3 py-2 align-top text-slate-800">
-                          {event.endpoint}
-                        </td>
-                        <td className="px-3 py-2 align-top">
-                          <span
-                            className={
-                              event.success
-                                ? "inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700"
-                                : "inline-flex rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700"
-                            }
-                          >
-                            {event.success ? "success" : `error ${event.status_code}`}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Actions</h2>
-          <p className="text-xs text-slate-600">
-            These actions call the existing admin APIs for Delhi ingestion and core seeding.
-          </p>
-          <AdminActionsClient adminUserId={adminUserId} />
-        </section>
-      </div>
-    </main>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <SystemDashboardClient
+        delhiCounts={delhiCounts}
+        stateSummaries={stateSummaries}
+        latestEvents={latestEvents}
+        aiRtiEnabled={aiRtiEnabled}
+        aiComplaintsEnabled={aiComplaintsEnabled}
+        adminUserId={adminUserId}
+      />
+    </div>
   );
 }

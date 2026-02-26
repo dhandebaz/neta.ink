@@ -29,8 +29,8 @@ export default function LogoToggle() {
 
   if (!mounted) {
     return (
-      <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/80 px-3 py-1 text-sm font-semibold tracking-tight text-slate-50 ring-1 ring-slate-700">
-        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-xs font-bold text-slate-950">
+      <div className="h-9 rounded-full px-4 text-xs font-medium border shadow-sm items-center justify-center inline-flex gap-2 border-slate-300 bg-white/80 text-slate-900 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/80 dark:text-white dark:hover:bg-slate-800">
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-xs font-bold text-slate-950">
           n
         </span>
         <span>neta</span>
@@ -44,12 +44,7 @@ export default function LogoToggle() {
     <button
       onClick={toggleTheme}
       className={`
-        relative overflow-hidden inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold tracking-tight ring-1 transition-all duration-300
-        ${
-          isDark
-            ? "bg-slate-900/80 text-slate-50 ring-slate-700 hover:bg-slate-900"
-            : "bg-white/80 text-slate-900 ring-slate-200 hover:bg-white shadow-sm"
-        }
+        relative overflow-hidden h-9 rounded-full px-4 text-xs font-medium border shadow-sm items-center justify-center inline-flex gap-2 border-slate-300 bg-white/80 text-slate-900 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/80 dark:text-white dark:hover:bg-slate-800
       `}
       aria-label="Toggle theme"
     >

@@ -109,9 +109,9 @@ export function UserMenuClient(props: Props) {
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/80 px-3 py-1 text-[11px] font-medium text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="h-9 rounded-full px-4 text-xs font-medium border shadow-sm items-center justify-center inline-flex gap-2 border-slate-300 bg-white/80 text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-slate-50 dark:bg-slate-100 dark:text-slate-900">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50 dark:bg-slate-100 dark:text-slate-900">
               {user.name && user.name.trim().length > 0
                 ? user.name.trim()[0]?.toUpperCase()
                 : user.phone_number && user.phone_number.length >= 4
@@ -205,7 +205,7 @@ export function UserMenuClient(props: Props) {
         <button
           type="button"
           onClick={openAuth}
-          className="inline-flex items-center justify-center rounded-full border border-slate-300 px-3 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="h-9 rounded-full px-4 text-xs font-medium border shadow-sm items-center justify-center inline-flex gap-2 border-slate-300 bg-white/80 text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800"
         >
           Sign in
         </button>

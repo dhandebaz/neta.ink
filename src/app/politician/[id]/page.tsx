@@ -52,10 +52,9 @@ export async function generateMetadata(
     };
   }
 
-  const title = `${politician.name} - ${politician.party} | NetaInk`;
-  const description = `View ${politician.name}'s civic rating, declared assets (₹${(
-    Number(politician.assets_worth) / 10000000
-  ).toFixed(1)} Cr), and criminal cases. Vote and hold them accountable on NetaInk.`;
+  const title = `${politician.name} - ${politician.party} | Neta.ink`;
+  const assetsCr = (Number(politician.assets_worth) / 10000000).toFixed(2);
+  const description = `View ${politician.name}'s official civic record. Criminal Cases: ${politician.criminal_cases ?? 0}. Declared Assets: ₹${assetsCr} Cr. Hold your leaders accountable.`;
 
   const image = politician.photo_url || "/og-default.jpg";
 

@@ -17,11 +17,14 @@ export default function ShareButtonClient({
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
+    // Construct viral text using name (from title prop) and URL
+    const viralText = `I just checked ${title}'s actual civic record on Neta.ink. See where they rank: ${url}`;
+
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title,
-          text,
+          title: viralText, // Some apps use title as subject
+          text: viralText,
           url,
         });
       } catch (error) {
@@ -31,7 +34,7 @@ export default function ShareButtonClient({
     } else {
       // Fallback
       try {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(`${viralText} ${url}`);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
