@@ -1,258 +1,152 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
-import {
-  state_ingestion_tasks,
-  states,
-  users
-} from "@/db/schema";
+import { states, constituencies, politicians } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
-import {
-  ingestDelhiCivicContacts,
-  ingestDelhiConstituencies,
-  ingestDelhiPoliticians,
-  ingestDelhiRtiPortal
-} from "@/lib/ingest/delhi";
+import { getCurrentUser } from "@/lib/auth/session";
+import { callHyperbrowserAgent } from "@/lib/ai/router";
 
-const TASK_TYPES = ["politicians", "constituencies", "civic_contacts", "rti_portal"] as const;
+export const maxDuration = 300;
+export const dynamic = "force-dynamic";
 
-type TaskType = (typeof TASK_TYPES)[number];
-
-async function requireAdmin(req: NextRequest) {
-  const adminIdHeader = req.headers.get("x-admin-user-id");
-
-  if (!adminIdHeader) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  }
-
-  const adminId = Number(adminIdHeader);
-
-  if (!Number.isFinite(adminId) || adminId <= 0) {
-    return { error: NextResponse.json({ error: "Invalid admin id" }, { status: 400 }) };
-  }
-
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, adminId))
-    .limit(1);
+export async function POST(req: NextRequest) {
+  const user = await getCurrentUser();
 
   if (!user || !user.is_system_admin) {
-    return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+    return NextResponse.json(
+      { success: false, error: "Unauthorized" },
+      { status: 403 }
+    );
   }
 
-  return { adminId };
-}
+  const body = await req.json();
+  const { stateCode } = body;
 
-async function ensureState(code: string) {
-  const normalized = code.toUpperCase().trim();
+  if (!stateCode) {
+    return NextResponse.json(
+      { success: false, error: "Missing stateCode" },
+      { status: 400 }
+    );
+  }
 
   const [state] = await db
     .select()
     .from(states)
-    .where(eq(states.code, normalized))
+    .where(eq(states.code, stateCode))
     .limit(1);
 
   if (!state) {
-    return { state: null, code: normalized };
+    return NextResponse.json(
+      { success: false, error: "State not found" },
+      { status: 404 }
+    );
   }
 
-  return { state, code: normalized };
-}
-
-export async function GET(req: NextRequest) {
-  const adminCheck = await requireAdmin(req);
-
-  if ("error" in adminCheck) {
-    return adminCheck.error;
-  }
-
-  const url = new URL(req.url);
-  const stateCodeParam = url.searchParams.get("stateCode");
-
-  if (!stateCodeParam) {
-    return NextResponse.json({ error: "Missing stateCode" }, { status: 400 });
-  }
-
-  const { state, code } = await ensureState(stateCodeParam);
-
-  if (!state) {
-    return NextResponse.json({ error: "State not found" }, { status: 404 });
-  }
-
-  for (const taskType of TASK_TYPES) {
-    const existing = await db
-      .select({ id: state_ingestion_tasks.id })
-      .from(state_ingestion_tasks)
-      .where(
-        and(
-          eq(state_ingestion_tasks.state_code, code),
-          eq(state_ingestion_tasks.task_type, taskType)
-        )
-      )
-      .limit(1);
-
-    if (existing.length === 0) {
-      await db.insert(state_ingestion_tasks).values({
-        state_code: code,
-        task_type: taskType,
-        status: "pending"
-      });
-    }
-  }
-
-  const tasks = await db
-    .select()
-    .from(state_ingestion_tasks)
-    .where(eq(state_ingestion_tasks.state_code, code));
-
-  return NextResponse.json({
-    success: true,
-    state,
-    tasks
-  });
-}
-
-type PostBody = {
-  stateCode?: string;
-  taskType?: TaskType;
-};
-
-export async function POST(req: NextRequest) {
-  const adminCheck = await requireAdmin(req);
-
-  if ("error" in adminCheck) {
-    return adminCheck.error;
-  }
-
-  const body = (await req.json().catch(() => null)) as PostBody | null;
-
-  if (!body || typeof body.stateCode !== "string" || typeof body.taskType !== "string") {
-    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
-  }
-
-  if (!TASK_TYPES.includes(body.taskType)) {
-    return NextResponse.json({ error: "Unsupported taskType" }, { status: 400 });
-  }
-
-  const { state, code } = await ensureState(body.stateCode);
-
-  if (!state) {
-    return NextResponse.json({ error: "State not found" }, { status: 404 });
-  }
-
-  const taskType = body.taskType;
-
-  const existing = await db
-    .select({ id: state_ingestion_tasks.id })
-    .from(state_ingestion_tasks)
-    .where(
-      and(
-        eq(state_ingestion_tasks.state_code, code),
-        eq(state_ingestion_tasks.task_type, taskType)
-      )
-    )
-    .limit(1);
-
-  let taskId: number;
-
-  if (existing.length === 0) {
-    const inserted = await db
-      .insert(state_ingestion_tasks)
-      .values({
-        state_code: code,
-        task_type: taskType,
-        status: "running",
-        last_error: null
-      })
-      .returning({ id: state_ingestion_tasks.id });
-
-    taskId = inserted[0].id;
-  } else {
-    taskId = existing[0].id;
-
-    await db
-      .update(state_ingestion_tasks)
-      .set({
-        status: "running",
-        last_error: null
-      })
-      .where(eq(state_ingestion_tasks.id, taskId));
-  }
-
+  // Update status to running
   await db
     .update(states)
-    .set({ ingestion_status: "ingesting" })
+    .set({ ingestion_status: "running" })
     .where(eq(states.id, state.id));
-
-  let errorMessage: string | null = null;
 
   try {
-    if (code === "DL") {
-      if (taskType === "politicians") {
-        await ingestDelhiPoliticians();
-      } else if (taskType === "constituencies") {
-        await ingestDelhiConstituencies();
-      } else if (taskType === "civic_contacts") {
-        await ingestDelhiCivicContacts();
-      } else if (taskType === "rti_portal") {
-        await ingestDelhiRtiPortal();
-      }
-    } else {
-      errorMessage = `Ingestion helpers not implemented for state ${code}`;
+    const task = `List all current sitting MLAs (Members of Legislative Assembly) for the Indian state of ${state.name}. Return ONLY a STRICT JSON array of objects. Keys: "name", "party", "constituency". No markdown formatting.`;
+
+    const response = await callHyperbrowserAgent(task);
+
+    // Clean the AI response string (remove ```json tags)
+    let cleanedText = response.text.replace(/```json/g, "").replace(/```/g, "").trim();
+    
+    // Sometimes the model might output text before or after the JSON array, 
+    // we should try to extract the array if possible.
+    const firstBracket = cleanedText.indexOf("[");
+    const lastBracket = cleanedText.lastIndexOf("]");
+    if (firstBracket !== -1 && lastBracket !== -1) {
+      cleanedText = cleanedText.substring(firstBracket, lastBracket + 1);
     }
-  } catch (error) {
-    errorMessage =
-      error instanceof Error ? error.message : "Unknown error while running ingestion task";
-  }
 
-  if (errorMessage) {
+    const mlaList = JSON.parse(cleanedText);
+
+    if (!Array.isArray(mlaList)) {
+      throw new Error("AI response is not an array");
+    }
+
+    let count = 0;
+
+    for (const mla of mlaList) {
+      if (!mla.name || !mla.constituency) continue;
+
+      // Check if constituency exists
+      let [constituency] = await db
+        .select()
+        .from(constituencies)
+        .where(
+          and(
+            eq(constituencies.name, mla.constituency),
+            eq(constituencies.state_id, state.id)
+          )
+        )
+        .limit(1);
+
+      if (!constituency) {
+        const [inserted] = await db
+          .insert(constituencies)
+          .values({
+            state_id: state.id,
+            type: "assembly",
+            name: mla.constituency,
+          })
+          .returning();
+        constituency = inserted;
+      }
+
+      // Check if politician already exists
+      const [existingPolitician] = await db
+        .select()
+        .from(politicians)
+        .where(
+          and(
+            eq(politicians.name, mla.name),
+            eq(politicians.state_id, state.id)
+          )
+        )
+        .limit(1);
+
+      if (!existingPolitician) {
+        // Generate a simple slug
+        const slugBase = `${mla.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${mla.party?.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "ind"}`;
+        // Ensure uniqueness with timestamp if needed, but for now simple slug
+        const uniqueSlug = `${slugBase}-${Date.now().toString().slice(-4)}`;
+
+        await db.insert(politicians).values({
+          state_id: state.id,
+          name: mla.name,
+          slug: uniqueSlug,
+          position: "MLA",
+          party: mla.party || "Independent",
+          constituency_id: constituency.id,
+          ingestion_status: "completed", // Assuming default or not needed per instructions
+        });
+        count++;
+      }
+    }
+
     await db
-      .update(state_ingestion_tasks)
-      .set({
-        status: "error",
-        last_error: errorMessage
-      })
-      .where(eq(state_ingestion_tasks.id, taskId));
-  } else {
+      .update(states)
+      .set({ ingestion_status: "completed" })
+      .where(eq(states.id, state.id));
+
+    return NextResponse.json({ success: true, count });
+
+  } catch (error: any) {
+    console.error("Ingestion failed:", error);
+    
     await db
-      .update(state_ingestion_tasks)
-      .set({
-        status: "success",
-        last_error: null
-      })
-      .where(eq(state_ingestion_tasks.id, taskId));
+      .update(states)
+      .set({ ingestion_status: "failed" })
+      .where(eq(states.id, state.id));
+
+    return NextResponse.json(
+      { success: false, error: error.message || "Ingestion failed" },
+      { status: 500 }
+    );
   }
-
-  const taskStatusRows = await db
-    .select({ status: state_ingestion_tasks.status })
-    .from(state_ingestion_tasks)
-    .where(eq(state_ingestion_tasks.state_code, code));
-
-  let nextIngestionStatus = "idle";
-
-  if (taskStatusRows.some((row) => row.status === "error")) {
-    nextIngestionStatus = "error";
-  } else if (taskStatusRows.every((row) => row.status === "success")) {
-    nextIngestionStatus = "ready";
-  } else if (taskStatusRows.some((row) => row.status === "running")) {
-    nextIngestionStatus = "ingesting";
-  }
-
-  await db
-    .update(states)
-    .set({ ingestion_status: nextIngestionStatus })
-    .where(eq(states.id, state.id));
-
-  const [task] = await db
-    .select()
-    .from(state_ingestion_tasks)
-    .where(eq(state_ingestion_tasks.id, taskId))
-    .limit(1);
-
-  return NextResponse.json({
-    success: !errorMessage,
-    stateCode: code,
-    task
-  });
 }
-

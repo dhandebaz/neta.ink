@@ -10,7 +10,7 @@ const ALL_STATES = [
   { code: "AR", name: "Arunachal Pradesh" },
   { code: "AS", name: "Assam" },
   { code: "BR", name: "Bihar" },
-  { code: "CT", name: "Chhattisgarh" },
+  { code: "CG", name: "Chhattisgarh" },
   { code: "GA", name: "Goa" },
   { code: "GJ", name: "Gujarat" },
   { code: "HR", name: "Haryana" },
@@ -42,7 +42,7 @@ const ALL_STATES = [
   { code: "JK", name: "Jammu and Kashmir" },
   { code: "LA", name: "Ladakh" },
   { code: "LD", name: "Lakshadweep" },
-  { code: "PY", name: "Puducherry" },
+  { code: "PY", name: "Puducherry" }
 ];
 
 export async function POST(req: NextRequest) {

@@ -516,94 +516,245 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
             {states.length} configured
           </span>
         </div>
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="min-w-full text-xs">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                  Code
-                </th>
-                <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                  Name
-                </th>
-                <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                  Enabled
-                </th>
-                <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                  Ingestion
-                </th>
-                <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {states.map((state) => (
-                <tr key={state.code} className="border-t">
-                  <td className="px-3 py-2 align-top text-slate-800">
-                    {state.code}
-                  </td>
-                  <td className="px-3 py-2 align-top text-slate-800">
-                    {state.name}
-                  </td>
-                  <td className="px-3 py-2 align-top">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        void toggleState(state.code, !state.is_enabled)
-                      }
-                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${
-                        state.is_enabled
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                          : "border-slate-400 bg-slate-100 text-slate-700"
-                      }`}
-                    >
-                      {state.is_enabled ? "Enabled" : "Disabled"}
-                    </button>
-                  </td>
-                  <td className="px-3 py-2 align-top">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                        state.ingestion_status === "ready"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : state.ingestion_status === "error"
-                          ? "bg-red-50 text-red-700"
-                          : state.ingestion_status === "ingesting"
-                          ? "bg-amber-50 text-amber-700"
-                          : "bg-slate-100 text-slate-700"
-                      }`}
-                    >
-                      {state.ingestion_status}
+
+        <div className="space-y-3">
+          {states.map((state) => {
+            const isExpanded = selectedStateCode === state.code;
+
+            return (
+              <div
+                key={state.code}
+                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden"
+              >
+                {/* Card Header */}
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-300">
+                      {state.code}
                     </span>
-                  </td>
-                  <td className="px-3 py-2 align-top">
-                    <button
-                      type="button"
-                      onClick={() => {
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                        {state.name}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span
+                          className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                            state.is_enabled
+                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              : "bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-400"
+                          }`}
+                        >
+                          {state.is_enabled ? "Live" : "Disabled"}
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                            state.ingestion_status === "completed"
+                              ? "bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
+                              : state.ingestion_status === "running"
+                              ? "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+                              : state.ingestion_status === "failed"
+                              ? "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
+                              : "bg-slate-50 text-slate-500 dark:bg-slate-900/50 dark:text-slate-500"
+                          }`}
+                        >
+                          {state.ingestion_status === "running" ? "Ingesting..." : state.ingestion_status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isExpanded) {
+                        setSelectedStateCode(null);
+                      } else {
                         setSelectedStateCode(state.code);
                         void refreshTasks(state.code);
                         void refreshFlags(state.code);
-                      }}
-                      className="inline-flex items-center rounded-full border border-slate-400 px-2 py-0.5 text-[11px] font-medium text-slate-800 hover:bg-slate-50"
-                    >
-                      Manage
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {states.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-3 py-3 text-center text-xs text-slate-500"
+                      }
+                    }}
+                    className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                      isExpanded
+                        ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50"
+                        : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                    }`}
                   >
-                    No states configured yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    {isExpanded ? "Close" : "Manage"}
+                  </button>
+                </div>
+
+                {/* Expanded Management Panel */}
+                {isExpanded && (
+                  <div className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 space-y-6">
+                    {/* 1. Toggle Live Status */}
+                    <div className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 p-3">
+                      <div>
+                        <h5 className="text-xs font-semibold text-slate-900 dark:text-slate-50">
+                          State Visibility
+                        </h5>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                          Enable this state for public users.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleState(state.code, !state.is_enabled)}
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                          state.is_enabled
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                        }`}
+                      >
+                        {state.is_enabled ? "Enabled" : "Disabled"}
+                      </button>
+                    </div>
+
+                    {/* 2. Feature Flags */}
+                    <div className="space-y-3">
+                      <h5 className="text-xs font-semibold text-slate-900 dark:text-slate-50">
+                        Feature Flags
+                      </h5>
+                      {flagsState.loading ? (
+                        <p className="text-[11px] text-slate-500">Loading flags...</p>
+                      ) : (
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {[
+                            { key: "complaints_enabled", label: "Complaints System" },
+                            { key: "rti_enabled", label: "RTI System" },
+                            { key: "ai_complaints_enabled", label: "AI Complaints" },
+                            { key: "ai_rti_enabled", label: "AI RTI" },
+                          ].map((flag) => {
+                             const key = flag.key as FlagKey;
+                             const isOn = flags && flags[key] === true;
+                             return (
+                               <button
+                                 key={key}
+                                 type="button"
+                                 onClick={() => toggleFlag(state.code, key)}
+                                 className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-xs transition-colors ${
+                                   isOn
+                                     ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/20"
+                                     : "border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950"
+                                 }`}
+                               >
+                                 <span className="font-medium text-slate-700 dark:text-slate-300">
+                                   {flag.label}
+                                 </span>
+                                 <span
+                                   className={`ml-2 rounded-full px-1.5 py-0.5 text-[10px] ${
+                                     isOn
+                                       ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400"
+                                       : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-500"
+                                   }`}
+                                 >
+                                   {isOn ? "ON" : "OFF"}
+                                 </span>
+                               </button>
+                             );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 3. Ingestion Controls */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-xs font-semibold text-slate-900 dark:text-slate-50">
+                          Data Ingestion
+                        </h5>
+                        {agentTaskState.message && (
+                           <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                             {agentTaskState.message}
+                           </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => runAgentTask(state.code)}
+                          disabled={agentTaskState.loading}
+                          className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                        >
+                          {agentTaskState.loading ? (
+                            <>
+                              <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              AI Agent Running...
+                            </>
+                          ) : (
+                            <>✨ Auto-Fetch MLAs (AI)</>
+                          )}
+                        </button>
+                        
+                        {["politicians", "constituencies"].map((taskType) => (
+                           <button
+                             key={taskType}
+                             type="button"
+                             onClick={() => runTask(state.code, taskType)}
+                             disabled={runTaskState.loadingTaskType === taskType}
+                             className="inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                           >
+                             Run {taskType}
+                           </button>
+                        ))}
+                      </div>
+
+                      {/* Ingestion Logs Table */}
+                      <div className="mt-4 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-950">
+                        <table className="min-w-full text-xs">
+                          <thead className="bg-slate-50 dark:bg-slate-900/50">
+                            <tr>
+                              <th className="px-3 py-2 text-left font-medium text-slate-500 dark:text-slate-400">Task</th>
+                              <th className="px-3 py-2 text-left font-medium text-slate-500 dark:text-slate-400">Status</th>
+                              <th className="px-3 py-2 text-left font-medium text-slate-500 dark:text-slate-400">Updated</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                             {tasks?.map((task) => (
+                               <tr key={task.id}>
+                                 <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{task.task_type}</td>
+                                 <td className="px-3 py-2">
+                                   <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                                     task.status === "success" || task.status === "completed"
+                                       ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                       : task.status === "running"
+                                       ? "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+                                       : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                   }`}>
+                                     {task.status}
+                                   </span>
+                                 </td>
+                                 <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{task.updated_at ? new Date(task.updated_at).toLocaleDateString() : "-"}</td>
+                               </tr>
+                             ))}
+                             {(!tasks || tasks.length === 0) && (
+                               <tr>
+                                 <td colSpan={3} className="px-3 py-4 text-center text-slate-500 dark:text-slate-400">
+                                   No ingestion tasks recorded.
+                                 </td>
+                               </tr>
+                             )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
+        
+        {states.length === 0 && (
+          <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-700">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              No states configured. Use the form below to add one.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
@@ -679,267 +830,6 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
               {addStateState.loading ? "Saving..." : "Save state"}
             </button>
           </form>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold">
-              State detail{" "}
-              {selectedState ? `for ${selectedState.name} (${selectedState.code})` : ""}
-            </h3>
-          </div>
-          {!selectedState && (
-            <p className="text-xs text-slate-600">
-              Select a state above to view ingestion tasks and feature flags.
-            </p>
-          )}
-          {selectedState && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-slate-800">
-                  Per-state feature flags
-                </h4>
-                {flagsState.error && (
-                  <p className="text-[11px] text-red-600">
-                    {flagsState.error}
-                  </p>
-                )}
-                {flagsState.loading && (
-                  <p className="text-[11px] text-slate-600">
-                    Loading flags...
-                  </p>
-                )}
-                {!flagsState.loading && (
-                  <div className="space-y-2">
-                    {[
-                      {
-                        key: "complaints_enabled" as FlagKey,
-                        label: "Complaints enabled for this state",
-                        helper:
-                          "Controls whether citizens can file complaints for this state."
-                      },
-                      {
-                        key: "rti_enabled" as FlagKey,
-                        label: "RTI enabled for this state",
-                        helper:
-                          "Controls whether RTI drafting is available for this state."
-                      },
-                      {
-                        key: "ai_complaints_enabled" as FlagKey,
-                        label: "AI helper for complaints enabled",
-                        helper:
-                          "Controls whether AI powers complaint analysis and drafting."
-                      },
-                      {
-                        key: "ai_rti_enabled" as FlagKey,
-                        label: "AI helper for RTI enabled",
-                        helper:
-                          "Controls whether AI powers RTI drafting for this state."
-                      }
-                    ].map((flagDef) => {
-                      const current =
-                        flags && flagDef.key in flags
-                          ? (flags as any)[flagDef.key]
-                          : null;
-                      const isOn = current === true;
-
-                      return (
-                        <div
-                          key={flagDef.key}
-                          className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
-                        >
-                          <div className="space-y-1">
-                            <div className="text-[11px] font-semibold text-slate-800">
-                              {flagDef.label}
-                            </div>
-                            <p className="text-[11px] text-slate-500">
-                              {flagDef.helper}
-                              {current === null && (
-                                <> Currently using the global default.</>
-                              )}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              void toggleFlag(selectedState.code, flagDef.key)
-                            }
-                            disabled={
-                              flagsState.savingKey === flagDef.key ||
-                              flagsState.loading
-                            }
-                            className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium ${
-                              isOn
-                                ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                                : "border-slate-400 bg-slate-100 text-slate-700"
-                            } ${
-                              flagsState.savingKey === flagDef.key
-                                ? "opacity-60"
-                                : ""
-                            }`}
-                          >
-                            {flagsState.savingKey === flagDef.key
-                              ? "Saving..."
-                              : isOn
-                              ? "On"
-                              : "Off"}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <h4 className="text-xs font-semibold text-slate-800">
-                    Ingestion tasks
-                  </h4>
-                  {loadTasksState.error && (
-                    <span className="text-[11px] text-red-600">
-                      {loadTasksState.error}
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {["politicians", "constituencies", "civic_contacts", "rti_portal"].map(
-                    (taskType) => (
-                      <button
-                        key={taskType}
-                        type="button"
-                        onClick={() =>
-                          void runTask(selectedState.code, taskType)
-                        }
-                        className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1 text-[11px] font-medium text-white disabled:opacity-60"
-                        disabled={
-                          runTaskState.loadingTaskType === taskType ||
-                          loadTasksState.loading
-                        }
-                      >
-                        {runTaskState.loadingTaskType === taskType
-                          ? `Running ${taskType}...`
-                          : `Run ${taskType} ingestion`}
-                      </button>
-                    )
-                  )}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      void runAgentTask(selectedState.code)
-                    }
-                    className="inline-flex items-center rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-medium text-white disabled:opacity-60"
-                    disabled={
-                      agentTaskState.loading || loadTasksState.loading
-                    }
-                  >
-                    {agentTaskState.loading
-            ? "Agent is browsing the web... this may take 30-60 seconds"
-            : "✨ Fetch / Refresh Politicians"}
-                  </button>
-                </div>
-                {runTaskState.error && (
-                  <p className="text-[11px] text-red-600">
-                    {runTaskState.error}
-                  </p>
-                )}
-                {agentTaskState.error && (
-                  <p className="text-[11px] text-red-600">
-                    {agentTaskState.error}
-                  </p>
-                )}
-                {agentTaskState.message && (
-                  <p className="text-[11px] text-emerald-700">
-                    {agentTaskState.message}
-                  </p>
-                )}
-                <div className="overflow-x-auto rounded-lg border">
-                  <table className="min-w-full text-xs">
-                    <thead className="bg-slate-50">
-                      <tr>
-                        <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                          Task
-                        </th>
-                        <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                          Status
-                        </th>
-                        <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                          Updated
-                        </th>
-                        <th className="px-3 py-2 text-left font-semibold text-slate-700">
-                          Last error
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loadTasksState.loading && (
-                        <tr>
-                          <td
-                            colSpan={4}
-                            className="px-3 py-3 text-center text-xs text-slate-500"
-                          >
-                            Loading tasks...
-                          </td>
-                        </tr>
-                      )}
-                      {!loadTasksState.loading &&
-                        tasks &&
-                        tasks.map((task) => (
-                          <tr key={task.id} className="border-t">
-                            <td className="px-3 py-2 align-top text-slate-800">
-                              {task.task_type}
-                            </td>
-                            <td className="px-3 py-2 align-top">
-                              <span
-                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                                  task.status === "success"
-                                    ? "bg-emerald-50 text-emerald-700"
-                                    : task.status === "error"
-                                    ? "bg-red-50 text-red-700"
-                                    : task.status === "running"
-                                    ? "bg-amber-50 text-amber-700"
-                                    : "bg-slate-100 text-slate-700"
-                                }`}
-                              >
-                                {task.status}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2 align-top text-slate-800">
-                              {task.updated_at ?? ""}
-                            </td>
-                            <td className="px-3 py-2 align-top text-slate-800">
-                              {task.last_error ?? ""}
-                            </td>
-                          </tr>
-                        ))}
-                      {!loadTasksState.loading &&
-                        tasks &&
-                        tasks.length === 0 && (
-                          <tr>
-                            <td
-                              colSpan={4}
-                              className="px-3 py-3 text-center text-xs text-slate-500"
-                            >
-                              No tasks recorded yet.
-                            </td>
-                          </tr>
-                        )}
-                      {!loadTasksState.loading && !tasks && (
-                        <tr>
-                          <td
-                            colSpan={4}
-                            className="px-3 py-3 text-center text-xs text-slate-500"
-                          >
-                            Tasks will appear here after loading.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
