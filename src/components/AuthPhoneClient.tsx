@@ -197,10 +197,11 @@ export function AuthPhoneClient(props: Props) {
       }
 
       setMessage("Signed in successfully.");
-      router.refresh();
+      // Hard redirect to ensure cookie is picked up
       if (props.onSignedIn) {
         props.onSignedIn();
       }
+      window.location.href = "/dashboard";
     } catch (err: any) {
       console.error("OTP verification error:", err);
 

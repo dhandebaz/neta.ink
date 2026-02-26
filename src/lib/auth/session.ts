@@ -43,20 +43,15 @@ function verifyToken(token: string): number | null {
 }
 
 export async function getCurrentUser() {
-  let cookieStore: ReturnType<typeof cookies> | null = null;
+  let cookieStore;
 
   try {
-    cookieStore = cookies();
+    cookieStore = await cookies();
   } catch {
     return null;
   }
 
-  const getCookie = (cookieStore as any)?.get;
-  if (typeof getCookie !== "function") {
-    return null;
-  }
-
-  const token = getCookie.call(cookieStore, SESSION_COOKIE_NAME)?.value;
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
   if (!token) {
     return null;
@@ -77,17 +72,29 @@ export async function getCurrentUser() {
   return user;
 }
 
-export function setUserSession(res: NextResponse, userId: number) {
+export async function setUserSession(userId: number, res?: any) {
   const token = signUserId(userId);
   const isProd = process.env.NODE_ENV === "production";
 
-  res.cookies.set(SESSION_COOKIE_NAME, token, {
+  // Use next/headers to force the cookie into the browser
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: isProd,
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30
+    maxAge: 60 * 60 * 24 * 30 // 30 days
   });
+
+  if (res && typeof res.cookies?.set === 'function') {
+    res.cookies.set(SESSION_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30
+    });
+  }
 }
 
 export function clearUserSession(res: NextResponse) {
@@ -99,4 +106,3 @@ export function clearUserSession(res: NextResponse) {
     maxAge: 0
   });
 }
-

@@ -50,7 +50,6 @@ export async function GET(req: NextRequest) {
   }
 
   const res = NextResponse.redirect(new URL("/system", req.url));
-  setUserSession(res, user.id);
+  await setUserSession(user.id, res);
   return res;
 }
-

@@ -147,6 +147,15 @@ export function UserMenuClient(props: Props) {
               >
                 Dashboard
               </Link>
+
+              {user.is_system_admin && (
+                <Link
+                  href="/system"
+                  className="flex items-center px-3 py-1.5 text-[11px] font-semibold text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
+                >
+                  ⚙️ System Admin
+                </Link>
+              )}
               <Link
                 href="/volunteer"
                 className="flex items-center px-3 py-1.5 text-[11px] text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   let userPhone = phoneNumber;
 
   try {
-    if (auth) {
+    if (process.env.FIREBASE_PROJECT_ID && auth) {
       const decoded = await auth.verifyIdToken(idToken);
       userUid = decoded.uid;
       userPhone = decoded.phone_number || phoneNumber;
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const res = NextResponse.json({ success: true, user });
-  await setUserSession(res, user.id);
-  return res;
+  // Await session before responding
+  await setUserSession(user.id);
+  return NextResponse.json({ success: true, user });
 }
