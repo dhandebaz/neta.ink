@@ -31,6 +31,12 @@ export function AdminActionsClient({ adminUserId }: Props) {
     error: null,
   });
 
+  const [panIndiaSeedState, setPanIndiaSeedState] = useState<ActionState>({
+    loading: false,
+    message: null,
+    error: null,
+  });
+
   const [aiIngestState, setAiIngestState] = useState<ActionState>({
     loading: false,
     message: null,
@@ -81,11 +87,40 @@ export function AdminActionsClient({ adminUserId }: Props) {
     }
   }
 
+  async function populateAllStates() {
+    setPanIndiaSeedState({ loading: true, message: null, error: null });
+    try {
+      const res = await fetch("/api/admin/states/seed-all", {
+        method: "POST",
+        headers: {
+          "x-admin-user-id": String(adminUserId),
+        },
+      });
+
+      if (!res.ok) {
+        setPanIndiaSeedState({
+          loading: false,
+          message: null,
+          error: `Request failed (${res.status})`,
+        });
+        return;
+      }
+
+      window.location.reload();
+    } catch (error) {
+      setPanIndiaSeedState({
+        loading: false,
+        message: null,
+        error: "Network error",
+      });
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-2 border-b pb-4">
         <h3 className="font-semibold text-sm text-slate-700">Core Seeds</h3>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           <div className="space-y-1">
             <button
               type="button"
@@ -155,6 +190,22 @@ export function AdminActionsClient({ adminUserId }: Props) {
               </p>
             )}
           </div>
+
+          <div className="space-y-1">
+            <button
+              type="button"
+              onClick={() => void populateAllStates()}
+              className="px-4 py-2 rounded bg-indigo-600 text-white text-sm disabled:opacity-60"
+              disabled={panIndiaSeedState.loading}
+            >
+              {panIndiaSeedState.loading
+                ? "Populating..."
+                : "Populate All Indian States"}
+            </button>
+            {panIndiaSeedState.error && (
+              <p className="text-xs text-red-600">{panIndiaSeedState.error}</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -201,4 +252,3 @@ export function AdminActionsClient({ adminUserId }: Props) {
     </div>
   );
 }
-

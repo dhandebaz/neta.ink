@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { AuthPhoneClient } from "./AuthPhoneClient";
 import { StateOnboardingClient } from "./StateOnboardingClient";
@@ -21,6 +21,8 @@ export function UserMenuClient(props: Props) {
   const [showAuth, setShowAuth] = useState(false);
   const [showStateModal, setShowStateModal] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const openAuth = () => {
     setShowAuth(true);
@@ -72,6 +74,21 @@ export function UserMenuClient(props: Props) {
     }
   }, [userId]);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
   let label = "Sign in";
   if (user) {
     if (user.name && user.name.trim().length > 0) {
@@ -88,27 +105,26 @@ export function UserMenuClient(props: Props) {
   return (
     <>
       {user ? (
-        <div className="relative">
-          <details className="group">
-            <summary className="list-none">
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/80 px-3 py-1 text-[11px] font-medium text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-slate-50 dark:bg-slate-100 dark:text-slate-900">
-                  {user.name && user.name.trim().length > 0
-                    ? user.name.trim()[0]?.toUpperCase()
-                    : user.phone_number && user.phone_number.length >= 4
-                    ? user.phone_number.slice(-2)
-                    : "u"}
-                </span>
-                <span className="hidden sm:inline">
-                  {label}
-                </span>
-              </button>
-            </summary>
+        <div className="relative" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/80 px-3 py-1 text-[11px] font-medium text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-slate-50 dark:bg-slate-100 dark:text-slate-900">
+              {user.name && user.name.trim().length > 0
+                ? user.name.trim()[0]?.toUpperCase()
+                : user.phone_number && user.phone_number.length >= 4
+                ? user.phone_number.slice(-2)
+                : "u"}
+            </span>
+            <span className="hidden sm:inline">
+              {label}
+            </span>
+          </button>
 
-            <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white py-2 text-[11px] shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          {isOpen && (
+            <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white py-2 text-[11px] shadow-lg dark:border-slate-700 dark:bg-slate-900 z-50">
               <div className="px-3 pb-2 text-[11px] text-slate-500 dark:text-slate-400">
                 <div className="font-medium text-slate-800 dark:text-slate-100">
                   {label}
@@ -128,12 +144,14 @@ export function UserMenuClient(props: Props) {
                 <>
                   <Link
                     href="/rankings"
+                    onClick={() => setIsOpen(false)}
                     className="flex items-center px-3 py-1.5 text-[11px] text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
                   >
                     Rankings
                   </Link>
                   <Link
                     href="/politicians"
+                    onClick={() => setIsOpen(false)}
                     className="flex items-center px-3 py-1.5 text-[11px] text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
                   >
                     Politicians
@@ -143,6 +161,7 @@ export function UserMenuClient(props: Props) {
 
               <Link
                 href="/dashboard"
+                onClick={() => setIsOpen(false)}
                 className="flex items-center px-3 py-1.5 text-[11px] text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
               >
                 Dashboard
@@ -151,13 +170,16 @@ export function UserMenuClient(props: Props) {
               {user.is_system_admin && (
                 <Link
                   href="/system"
+                  onClick={() => setIsOpen(false)}
                   className="flex items-center px-3 py-1.5 text-[11px] font-semibold text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
                 >
                   ⚙️ System Admin
                 </Link>
               )}
+              
               <Link
                 href="/volunteer"
+                onClick={() => setIsOpen(false)}
                 className="flex items-center px-3 py-1.5 text-[11px] text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
               >
                 Volunteer tasks
@@ -177,7 +199,7 @@ export function UserMenuClient(props: Props) {
                 </span>
               </button>
             </div>
-          </details>
+          )}
         </div>
       ) : (
         <button

@@ -834,8 +834,8 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
                     }
                   >
                     {agentTaskState.loading
-                      ? "Agent is browsing the web... this may take 30-60 seconds"
-                      : "✨ Auto-Ingest via AI Brain"}
+            ? "Agent is browsing the web... this may take 30-60 seconds"
+            : "✨ Fetch / Refresh Politicians"}
                   </button>
                 </div>
                 {runTaskState.error && (
