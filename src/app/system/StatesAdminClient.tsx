@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Users, Settings, LayoutDashboard, Map, Sparkles, Activity } from "lucide-react";
 
 type StateSummary = {
   code: string;

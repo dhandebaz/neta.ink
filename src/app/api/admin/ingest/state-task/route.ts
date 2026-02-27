@@ -64,12 +64,38 @@ export async function POST(req: NextRequest) {
     .where(eq(states.id, state.id));
 
   try {
-    const targetUrl = STATE_URL_MAP[stateCode];
+    let targetUrl = STATE_URL_MAP[stateCode];
+
+    // If not hardcoded, dynamically find the MyNeta URL using a fast DDG HTML search
     if (!targetUrl) {
-      throw new Error(`No MyNeta URL configured for state code: ${stateCode}`);
+      console.log(`No hardcoded URL for ${stateCode}, searching dynamically...`);
+      const searchQuery = `site:myneta.info "Winning Candidates" ${state.name} Assembly Election`;
+      const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(searchQuery)}`;
+
+      const ddgRes = await fetch(ddgUrl, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        },
+      });
+      const ddgHtml = await ddgRes.text();
+
+      const linkMatch =
+        ddgHtml.match(/href="([^"]*myneta\.info[^"]*winner_analyzed[^"]*)"/i) ||
+        ddgHtml.match(/href="([^"]*myneta\.info[^"]*)"/i);
+
+      if (linkMatch && linkMatch[1]) {
+        let rawLink = linkMatch[1];
+        if (rawLink.includes("uddg=")) {
+          rawLink = decodeURIComponent(rawLink.split("uddg=")[1].split("&")[0]);
+        }
+        targetUrl = rawLink;
+      } else {
+        throw new Error(`Could not dynamically locate MyNeta URL for state: ${state.name}`);
+      }
     }
 
-    console.log(`Fetching ${targetUrl} for state ${stateCode}`);
+    console.log(`🎯 Target Locked: Fetching MyNeta -> ${targetUrl}`);
     const response = await fetch(targetUrl, {
       headers: {
         "User-Agent":
@@ -87,29 +113,20 @@ export async function POST(req: NextRequest) {
     // Delete old politicians to prevent duplicates and keep data fresh
     await db.delete(politicians).where(eq(politicians.state_id, state.id));
 
-    let targetTable: cheerio.Cheerio<any> | null = null;
-    $("table").each((_, table) => {
-      const headerText = $(table).text().toLowerCase();
-      if (
-        headerText.includes("candidate") &&
-        headerText.includes("party") &&
-        headerText.includes("constituency")
-      ) {
-        targetTable = $(table);
-        return false; // Break
-      }
-    });
+    // STRICT FIX: Find the correct table more robustly
+    const targetTable = $('table').filter((i, el) => {
+      const text = $(el).text();
+      return text.includes('Candidate') && text.includes('Total Assets');
+    }).first();
 
-    if (!targetTable) {
+    if (targetTable.length === 0) {
       throw new Error("Could not find candidate table in MyNeta page");
     }
 
     const extractedData: any[] = [];
-    const rows = $(targetTable).find("tr");
+    const rows = targetTable.find('tr').slice(1); // Skip header row
 
     rows.each((index, row) => {
-      if (index === 0) return;
-
       const cells = $(row).find("td");
       if (cells.length < 4) return;
 
@@ -146,9 +163,11 @@ export async function POST(req: NextRequest) {
 
       const assetsText = assetsCell.text().trim();
       let assets = 0;
+      // STRICT FIX: Safely parse numbers, default to 0
       const cleanAssets = assetsText.split("~")[0].replace(/[^\d]/g, "");
       if (cleanAssets) {
-        assets = parseInt(cleanAssets);
+        const parsed = parseInt(cleanAssets);
+        assets = isNaN(parsed) ? 0 : parsed;
       }
 
       let photoUrl = "";

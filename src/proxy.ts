@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// STRICT FIX: Edge compatibility - No Node.js imports allowed here.
+// Rate limiting is temporarily disabled or simplified for Edge Runtime compliance if needed.
+// Current implementation uses in-memory Map which is per-isolate in Edge.
+// It won't be globally consistent but it prevents crashes.
+
 type RateLimitEntry = {
   count: number;
   resetAt: number;
@@ -60,14 +65,20 @@ export function proxy(req: NextRequest) {
 
   const ip = getIp(req);
   const key = `${ip}:${pathname}`;
+  
   // Limit: 3 requests per 60 seconds
-  const limit = checkRateLimit(key, 3, 60_000);
-
-  if (!limit.allowed) {
-    return NextResponse.json(
-      { error: "Too many requests. Please wait 60 seconds." },
-      { status: 429 }
-    );
+  // If this causes Edge crashes, comment out checkRateLimit
+  try {
+    const limit = checkRateLimit(key, 3, 60_000);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait 60 seconds." },
+        { status: 429 }
+      );
+    }
+  } catch (e) {
+    console.error("Rate limit error:", e);
+    // Fail open if rate limit check fails
   }
 
   return NextResponse.next();

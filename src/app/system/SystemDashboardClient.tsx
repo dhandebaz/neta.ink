@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { StatesAdminClient } from "./StatesAdminClient";
 import { AiFlagsClient } from "./AiFlagsClient";
-import { Users, Settings, RefreshCw } from "lucide-react";
+import { Loader2, Users, Settings, RefreshCw, LayoutDashboard, Map, Sparkles, Activity } from "lucide-react";
 
 type SystemDashboardProps = {
   delhiCounts: {

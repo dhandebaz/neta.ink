@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import { db } from "@/db/client";
 import { constituencies, politicians, states } from "@/db/schema";
@@ -199,13 +200,24 @@ export default async function StatePoliticiansPage({ params, searchParams }: Pag
                   className="group block overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 p-4 transition-all hover:border-slate-300 hover:shadow-md dark:hover:border-slate-700"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                        {p.name}
-                      </h3>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                        {p.party} • {cName}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <div className="relative h-12 w-12 flex-shrink-0">
+                        <Image
+                          src={p.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=random&color=fff&size=256`}
+                          alt={p.name}
+                          fill
+                          className="rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-800"
+                          sizes="48px"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                          {p.name}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          {p.party} • {cName}
+                        </p>
+                      </div>
                     </div>
                     <span
                       className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider ${

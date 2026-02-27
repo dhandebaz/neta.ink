@@ -123,7 +123,7 @@ export default async function StateRankingsPage({ params }: { params: Promise<{ 
                     <div className="flex items-start gap-3">
                       <div className="relative h-12 w-12 flex-shrink-0">
                         <Image
-                          src={politician.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(politician.name)}&background=random`}
+                          src={politician.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(politician.name)}&background=random&color=fff&size=256`}
                           alt={politician.name}
                           fill
                           className="rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-800"
