@@ -55,7 +55,10 @@ export default async function VolunteerPage() {
             Help us keep democracy transparent. Apply to become a State Manager to verify local news, flag fake reports, and manage politician data for your constituency.
           </p>
           <div className="flex justify-center pt-4">
-            <button className="opacity-50 cursor-not-allowed bg-slate-800 text-slate-400 px-8 py-3 rounded-full font-medium border border-slate-700">
+            <button
+              disabled
+              className="opacity-50 cursor-not-allowed bg-slate-800 text-slate-400 px-8 py-3 rounded-full font-medium border border-slate-700"
+            >
               Apply for State Manager (Coming Soon)
             </button>
           </div>

@@ -84,6 +84,9 @@ export async function POST(req: NextRequest) {
     const html = await response.text();
     const $ = cheerio.load(html);
 
+    // Delete old politicians to prevent duplicates and keep data fresh
+    await db.delete(politicians).where(eq(politicians.state_id, state.id));
+
     let targetTable: cheerio.Cheerio<any> | null = null;
     $("table").each((_, table) => {
       const headerText = $(table).text().toLowerCase();

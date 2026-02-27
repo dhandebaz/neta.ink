@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { StatesAdminClient } from "./StatesAdminClient";
 import { AiFlagsClient } from "./AiFlagsClient";
-import { Users, Settings } from "lucide-react";
+import { Users, Settings, RefreshCw } from "lucide-react";
 
 type SystemDashboardProps = {
   delhiCounts: {
@@ -46,6 +47,14 @@ export function SystemDashboardClient({
   totalRateLimited,
 }: SystemDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const router = useRouter();
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    router.refresh();
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -77,6 +86,17 @@ export function SystemDashboardClient({
 
       {/* Main Content */}
       <main className="flex-1 bg-slate-50 p-4 dark:bg-slate-900 sm:p-8">
+        <div className="mb-6 flex items-center justify-end">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+            Refresh Data
+          </button>
+        </div>
+
         {activeTab === "overview" && (
           <div className="space-y-6">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -197,34 +217,10 @@ export function SystemDashboardClient({
               Role Management
             </h1>
             <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 text-slate-500 dark:bg-slate-900 dark:text-slate-400">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">User</th>
-                    <th className="px-4 py-3 font-medium">Email</th>
-                    <th className="px-4 py-3 font-medium">Role</th>
-                    <th className="px-4 py-3 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                  <tr className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                    <td className="px-4 py-3 text-slate-900 dark:text-white">
-                      Mock User
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
-                      mock@example.com
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
-                      State Manager
-                    </td>
-                    <td className="px-4 py-3">
-                      <button className="text-blue-600 hover:underline dark:text-blue-400">
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                <Users className="mx-auto mb-3 h-8 w-8 opacity-20" />
+                <p>State Manager roles and permissions coming in V2.</p>
+              </div>
             </div>
           </div>
         )}
@@ -234,44 +230,21 @@ export function SystemDashboardClient({
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
               Website Settings
             </h1>
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-slate-900 dark:text-white">
-                    Maintenance Mode
-                  </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Disable public access to the site.
-                  </p>
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-slate-900 dark:text-white">Maintenance Mode</h3>
+                    <p className="text-sm text-slate-500">Disable public access temporarily</p>
+                  </div>
+                  <div className="h-6 w-11 rounded-full bg-slate-200 dark:bg-slate-800"></div>
                 </div>
-                <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 dark:bg-slate-700">
-                  <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-slate-900 dark:text-white">
-                    Disable New Signups
-                  </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Prevent new users from registering.
-                  </p>
-                </div>
-                <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 dark:bg-slate-700">
-                  <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-slate-900 dark:text-white">
-                    Global API Rate Limit
-                  </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Apply strict rate limits to all API endpoints.
-                  </p>
-                </div>
-                <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 dark:bg-slate-700">
-                  <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition" />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-slate-900 dark:text-white">API Rate Limiting</h3>
+                    <p className="text-sm text-slate-500">Enforce strict limits on public endpoints</p>
+                  </div>
+                  <div className="h-6 w-11 rounded-full bg-emerald-500"></div>
                 </div>
               </div>
             </div>
@@ -283,6 +256,9 @@ export function SystemDashboardClient({
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
               Live Logs
             </h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              View recent system activities and API requests.
+            </p>
             <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
               {!latestEvents || latestEvents.length === 0 ? (
                 <div className="p-8 text-center text-slate-500">
@@ -304,7 +280,7 @@ export function SystemDashboardClient({
                       {latestEvents.map((event) => (
                         <tr key={event.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                           <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">
-                            {new Date(event.created_at).toLocaleTimeString()}
+                            {new Date(event.created_at).toLocaleString()}
                           </td>
                           <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">
                             {event.user_id}

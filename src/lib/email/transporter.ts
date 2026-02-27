@@ -4,20 +4,23 @@ function wrapCivicEmailHtml(innerHtml: string) {
   const safeInner = innerHtml && innerHtml.trim().length > 0 ? innerHtml : "<p></p>";
 
   return [
-    `<div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background: #f8fafc; padding: 24px;">`,
-    `<div style="max-width: 640px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">`,
-    `<div style="padding: 20px 20px 0 20px;">`,
-    `<h2 style="color: #0f172a; margin: 0 0 12px 0;">Official Civic Request via Neta.ink</h2>`,
+    `<!DOCTYPE html>`,
+    `<html>`,
+    `<body style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px;">`,
+    `<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">`,
+    `<div style="background-color: #ffffff; padding: 24px 24px 0 24px;">`,
+    `<h2 style="color: #0f172a; margin: 0 0 4px 0; font-size: 20px; font-weight: 600;">Official Civic Request</h2>`,
+    `<p style="color: #64748b; margin: 0; font-size: 14px;">via Neta.ink</p>`,
     `</div>`,
-    `<div style="padding: 0 20px 16px 20px; color: #0f172a; font-size: 14px; line-height: 1.6;">`,
+    `<div style="padding: 24px; color: #334155; font-size: 15px; line-height: 1.6;">`,
     safeInner,
     `</div>`,
-    `<div style="padding: 0 20px 20px 20px;">`,
-    `<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 0 0 12px 0;" />`,
-    `<p style="color: #64748b; font-size: 12px; margin: 0;">This document was legally drafted and digitally verified via the Neta.ink civic accountability platform.</p>`,
+    `<div style="padding: 20px 24px; background-color: #f8fafc; border-top: 1px solid #e2e8f0;">`,
+    `<p style="color: #64748b; font-size: 12px; margin: 0; text-align: center;">This document was legally drafted and digitally verified via the Neta.ink civic accountability platform.</p>`,
     `</div>`,
     `</div>`,
-    `</div>`
+    `</body>`,
+    `</html>`
   ].join("\n");
 }
 

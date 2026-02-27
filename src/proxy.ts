@@ -5,6 +5,8 @@ type RateLimitEntry = {
   resetAt: number;
 };
 
+// Global in-memory store for rate limiting (fallback when Redis is not used)
+// Note: This resets on server restart/redeploy
 const store: Map<string, RateLimitEntry> =
   (globalThis as any).__netaink_rate_limit_store ??
   ((globalThis as any).__netaink_rate_limit_store = new Map<string, RateLimitEntry>());
@@ -43,9 +45,10 @@ function checkRateLimit(key: string, limit: number, windowMs: number) {
   return { allowed: true };
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname.replace(/\/$/, "");
 
+  // Define rate-limited paths
   const limited =
     pathname === "/api/rti/draft" ||
     pathname === "/api/complaints/generate" ||
@@ -57,6 +60,7 @@ export function middleware(req: NextRequest) {
 
   const ip = getIp(req);
   const key = `${ip}:${pathname}`;
+  // Limit: 3 requests per 60 seconds
   const limit = checkRateLimit(key, 3, 60_000);
 
   if (!limit.allowed) {
@@ -72,4 +76,3 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: "/api/:path*"
 };
-
