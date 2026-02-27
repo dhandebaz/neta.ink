@@ -12,7 +12,11 @@ type ActionState = {
   error: string | null;
 };
 
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+
 export function AdminActionsClient({ adminUserId }: Props) {
+  const router = useRouter();
   const [ingestState, setIngestState] = useState<ActionState>({
     loading: false,
     message: null,
@@ -106,7 +110,12 @@ export function AdminActionsClient({ adminUserId }: Props) {
         return;
       }
 
-      window.location.reload();
+      router.refresh();
+      setPanIndiaSeedState({
+        loading: false,
+        message: "Seed initiated. Data will appear shortly.",
+        error: null,
+      });
     } catch (error) {
       setPanIndiaSeedState({
         loading: false,
@@ -127,12 +136,17 @@ export function AdminActionsClient({ adminUserId }: Props) {
               onClick={() =>
                 void callEndpoint("/api/admin/ingest/delhi", setIngestState)
               }
-              className="px-4 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-60"
+              className="px-4 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-60 flex items-center gap-2"
               disabled={ingestState.loading}
             >
-              {ingestState.loading
-                ? "Running Delhi ingestion..."
-                : "Run Delhi Ingestion"}
+              {ingestState.loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Running...</span>
+                </>
+              ) : (
+                "Run Delhi Ingestion"
+              )}
             </button>
             {ingestState.message && (
               <p className="text-xs text-emerald-700">{ingestState.message}</p>
@@ -151,9 +165,14 @@ export function AdminActionsClient({ adminUserId }: Props) {
               className="px-4 py-2 rounded bg-emerald-600 text-white text-sm disabled:opacity-60"
               disabled={seedState.loading}
             >
-              {seedState.loading
-                ? "Running Delhi core seed..."
-                : "Run Delhi Core Seed"}
+              {seedState.loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Seeding...</span>
+                </div>
+              ) : (
+                "Run Delhi Core Seed"
+              )}
             </button>
             {seedState.message && (
               <p className="text-xs text-emerald-700">{seedState.message}</p>
@@ -172,12 +191,17 @@ export function AdminActionsClient({ adminUserId }: Props) {
                   setMaharashtraSeedState
                 )
               }
-              className="px-4 py-2 rounded bg-orange-600 text-white text-sm disabled:opacity-60"
+              className="px-4 py-2 rounded bg-orange-600 text-white text-sm disabled:opacity-60 flex items-center gap-2"
               disabled={maharashtraSeedState.loading}
             >
-              {maharashtraSeedState.loading
-                ? "Running MH core seed..."
-                : "Run Maharashtra Core Seed"}
+              {maharashtraSeedState.loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Seeding...</span>
+                </>
+              ) : (
+                "Run Maharashtra Core Seed"
+              )}
             </button>
             {maharashtraSeedState.message && (
               <p className="text-xs text-emerald-700">
@@ -198,9 +222,14 @@ export function AdminActionsClient({ adminUserId }: Props) {
               className="px-4 py-2 rounded bg-indigo-600 text-white text-sm disabled:opacity-60"
               disabled={panIndiaSeedState.loading}
             >
-              {panIndiaSeedState.loading
-                ? "Populating..."
-                : "Populate All Indian States"}
+              {panIndiaSeedState.loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Seeding...</span>
+                </div>
+              ) : (
+                "Run Pan-India Seed"
+              )}
             </button>
             {panIndiaSeedState.error && (
               <p className="text-xs text-red-600">{panIndiaSeedState.error}</p>
@@ -236,10 +265,17 @@ export function AdminActionsClient({ adminUserId }: Props) {
                 { stateCode: aiStateCode, taskType: "politicians" }
               )
             }
-            className="px-4 py-2 rounded bg-purple-600 text-white text-sm disabled:opacity-60"
+            className="px-4 py-2 rounded bg-purple-600 text-white text-sm disabled:opacity-60 flex items-center gap-2"
             disabled={aiIngestState.loading || !aiStateCode}
           >
-            {aiIngestState.loading ? "Waking up Brain..." : "Start Auto-Ingest"}
+            {aiIngestState.loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Waking up Brain...</span>
+              </>
+            ) : (
+              "Start Auto-Ingest"
+            )}
           </button>
         </div>
         {aiIngestState.message && (

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { StatesAdminClient } from "./StatesAdminClient";
 import { AiFlagsClient } from "./AiFlagsClient";
+import { Users, Settings } from "lucide-react";
 
 type SystemDashboardProps = {
   delhiCounts: {
@@ -17,12 +18,18 @@ type SystemDashboardProps = {
   aiRtiEnabled: boolean;
   aiComplaintsEnabled: boolean;
   adminUserId: number;
+  totalAiRequests: number;
+  totalComplaintsCreated: number;
+  totalRtisCreated: number;
+  totalRateLimited: number;
 };
 
 const tabs = [
   { id: "overview", label: "Overview" },
   { id: "state-engine", label: "State Engine" },
   { id: "ai-controls", label: "AI Controls" },
+  { id: "users", label: "User & Roles", icon: <Users className="h-4 w-4" /> },
+  { id: "settings", label: "Website Settings", icon: <Settings className="h-4 w-4" /> },
   { id: "live-logs", label: "Live Logs" },
 ];
 
@@ -33,6 +40,10 @@ export function SystemDashboardClient({
   aiRtiEnabled,
   aiComplaintsEnabled,
   adminUserId,
+  totalAiRequests,
+  totalComplaintsCreated,
+  totalRtisCreated,
+  totalRateLimited,
 }: SystemDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -47,12 +58,12 @@ export function SystemDashboardClient({
           <p className="text-xs text-slate-500">ID: {adminUserId}</p>
         </div>
 
-        <nav className="flex space-x-2 overflow-x-auto md:flex-col md:space-x-0 md:space-y-1">
+        <nav className="flex flex-row space-x-2 overflow-x-auto whitespace-nowrap md:flex-col md:space-x-0 md:space-y-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`whitespace-nowrap rounded-md px-3 py-2 text-left text-sm font-medium transition-colors ${
+              className={`flex-shrink-0 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
@@ -73,6 +84,40 @@ export function SystemDashboardClient({
             </h1>
             
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {/* AI & Usage Stats */}
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Total AI Requests
+                </h3>
+                <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                  {totalAiRequests}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Rate Limited
+                </h3>
+                <p className="mt-2 text-3xl font-bold text-amber-600 dark:text-amber-400">
+                  {totalRateLimited}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Global Complaints
+                </h3>
+                <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                  {totalComplaintsCreated}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Global RTIs
+                </h3>
+                <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                  {totalRtisCreated}
+                </p>
+              </div>
+
               {/* Delhi Stats Card */}
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                 <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -146,54 +191,147 @@ export function SystemDashboardClient({
           </div>
         )}
 
+        {activeTab === "users" && (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              Role Management
+            </h1>
+            <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">User</th>
+                    <th className="px-4 py-3 font-medium">Email</th>
+                    <th className="px-4 py-3 font-medium">Role</th>
+                    <th className="px-4 py-3 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  <tr className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                    <td className="px-4 py-3 text-slate-900 dark:text-white">
+                      Mock User
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                      mock@example.com
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                      State Manager
+                    </td>
+                    <td className="px-4 py-3">
+                      <button className="text-blue-600 hover:underline dark:text-blue-400">
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "settings" && (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              Website Settings
+            </h1>
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-slate-900 dark:text-white">
+                    Maintenance Mode
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Disable public access to the site.
+                  </p>
+                </div>
+                <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 dark:bg-slate-700">
+                  <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-slate-900 dark:text-white">
+                    Disable New Signups
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Prevent new users from registering.
+                  </p>
+                </div>
+                <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 dark:bg-slate-700">
+                  <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-slate-900 dark:text-white">
+                    Global API Rate Limit
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Apply strict rate limits to all API endpoints.
+                  </p>
+                </div>
+                <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 dark:bg-slate-700">
+                  <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === "live-logs" && (
           <div className="space-y-6">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
               Live Logs
             </h1>
             <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-slate-500 dark:bg-slate-900 dark:text-slate-400">
-                    <tr>
-                      <th className="px-4 py-3 font-medium">Time</th>
-                      <th className="px-4 py-3 font-medium">User</th>
-                      <th className="px-4 py-3 font-medium">Task</th>
-                      <th className="px-4 py-3 font-medium">Endpoint</th>
-                      <th className="px-4 py-3 font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                    {latestEvents.map((event) => (
-                      <tr key={event.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                        <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">
-                          {new Date(event.created_at).toLocaleTimeString()}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">
-                          {event.user_id}
-                        </td>
-                        <td className="px-4 py-3 text-slate-900 dark:text-white">
-                          {event.task_type}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-xs">
-                          {event.endpoint}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                              event.success
-                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                            }`}
-                          >
-                            {event.status_code}
-                          </span>
-                        </td>
+              {!latestEvents || latestEvents.length === 0 ? (
+                <div className="p-8 text-center text-slate-500">
+                  No recent API events logged.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                      <tr>
+                        <th className="px-4 py-3 font-medium">Time</th>
+                        <th className="px-4 py-3 font-medium">User</th>
+                        <th className="px-4 py-3 font-medium">Task</th>
+                        <th className="px-4 py-3 font-medium">Endpoint</th>
+                        <th className="px-4 py-3 font-medium">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                      {latestEvents.map((event) => (
+                        <tr key={event.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                          <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">
+                            {new Date(event.created_at).toLocaleTimeString()}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">
+                            {event.user_id}
+                          </td>
+                          <td className="px-4 py-3 text-slate-900 dark:text-white">
+                            {event.task_type}
+                          </td>
+                          <td className="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-xs">
+                            {event.endpoint}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                                event.success
+                                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              }`}
+                            >
+                              {event.status_code}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}

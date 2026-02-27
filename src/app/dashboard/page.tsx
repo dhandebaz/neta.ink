@@ -1,5 +1,5 @@
 import { db } from "@/db/client";
-import { complaints, rti_requests, users, states } from "@/db/schema";
+import { complaints, rti_requests, users, politicians } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth/session";
 import { AuthPhoneClient } from "@/components/AuthPhoneClient";
@@ -12,18 +12,17 @@ type DashboardUser = Pick<
 
 type DashboardComplaint = {
   id: number;
-  title: string;
-  department_name: string;
+  complaint_type: string;
+  location_text: string;
   status: string;
-  photo_url: string;
   created_at: Date;
 };
 
 type DashboardRti = {
   id: number;
-  question: string;
+  target_official: string;
   status: string;
-  pdf_url: string | null;
+  download_url: string;
   created_at: Date;
 };
 
@@ -47,14 +46,13 @@ export default async function DashboardPage() {
 
   const userId = user.id;
 
-  const [userComplaints, userRtis, activeStates] = await Promise.all([
+  const [userComplaints, userRtis] = await Promise.all([
     db
       .select({
         id: complaints.id,
         title: complaints.title,
-        department_name: complaints.department_name,
+        location_text: complaints.location_text,
         status: complaints.status,
-        photo_url: complaints.photo_url,
         created_at: complaints.created_at
       })
       .from(complaints)
@@ -63,18 +61,16 @@ export default async function DashboardPage() {
     db
       .select({
         id: rti_requests.id,
-        question: rti_requests.question,
         status: rti_requests.status,
+        created_at: rti_requests.created_at,
         pdf_url: rti_requests.pdf_url,
-        created_at: rti_requests.created_at
+        politician_name: politicians.name,
+        politician_position: politicians.position
       })
       .from(rti_requests)
+      .leftJoin(politicians, eq(politicians.id, rti_requests.politician_id))
       .where(eq(rti_requests.user_id, userId))
       .orderBy(desc(rti_requests.created_at)),
-    db
-      .select({ code: states.code, name: states.name })
-      .from(states)
-      .where(eq(states.is_enabled, true))
   ]);
 
   const dashboardUser: DashboardUser = {
@@ -89,18 +85,20 @@ export default async function DashboardPage() {
 
   const complaintsData: DashboardComplaint[] = userComplaints.map((c) => ({
     id: c.id,
-    title: c.title,
-    department_name: c.department_name,
+    complaint_type: c.title,
+    location_text: c.location_text,
     status: c.status,
-    photo_url: c.photo_url,
     created_at: c.created_at
   }));
 
   const rtisData: DashboardRti[] = userRtis.map((r) => ({
     id: r.id,
-    question: r.question,
+    target_official:
+      r.politician_name && r.politician_name.trim().length > 0
+        ? `${r.politician_position || "MLA"} ${r.politician_name}`
+        : "Public Information Officer",
     status: r.status,
-    pdf_url: r.pdf_url,
+    download_url: r.pdf_url && r.pdf_url.trim().length > 0 ? r.pdf_url : `/api/rti/${r.id}/pdf`,
     created_at: r.created_at
   }));
 
@@ -109,7 +107,6 @@ export default async function DashboardPage() {
       user={dashboardUser}
       complaints={complaintsData}
       rtis={rtisData}
-      activeStates={activeStates}
     />
   );
 }

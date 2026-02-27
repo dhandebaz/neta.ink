@@ -38,6 +38,10 @@ export async function fulfillComplaint(complaintId: number) {
     return;
   }
 
+  if (row.status !== "pending") {
+    return;
+  }
+
   const to = row.department_email || row.civic_body_email;
 
   if (!to) {
@@ -53,14 +57,26 @@ export async function fulfillComplaint(complaintId: number) {
     cc.push(row.user_email);
   }
 
-  const subject = `[NetaInk Civic Report] ${row.title} - ${row.location_text}`;
+  const updated = await db
+    .update(complaints)
+    .set({
+      status: "filed"
+    })
+    .where(and(eq(complaints.id, row.id), eq(complaints.status, row.status)))
+    .returning({ id: complaints.id });
+
+  if (!updated[0]) {
+    return;
+  }
+
+  const subject = `[Neta.ink Civic Report] ${row.title} - ${row.location_text}`;
 
   const displayName = row.user_name || "citizen";
 
   const descriptionHtml = row.description.replace(/\n/g, "<br/>");
 
   const bodyLines = [
-    `<p>This is a formal civic complaint submitted via NetaInk by a verified citizen.</p>`,
+    `<p>This is a formal civic complaint submitted via Neta.ink by a verified citizen.</p>`,
     `<p><strong>Issue summary</strong></p>`,
     `<p>${descriptionHtml}</p>`,
     `<p><strong>Location</strong>: ${row.location_text}</p>`,
@@ -69,7 +85,7 @@ export async function fulfillComplaint(complaintId: number) {
     }</p>`,
     `<p>We request that this complaint be acknowledged and that appropriate action be taken in a timely manner. Please share a brief written acknowledgment and reference number so that the citizen can track progress.</p>`,
     `<p>Thank you.</p>`,
-    `<p>NetaInk civic support</p>`
+    `<p>Neta.ink civic support</p>`
   ].filter(Boolean);
 
   const html = bodyLines.join("\n");
@@ -89,11 +105,4 @@ export async function fulfillComplaint(complaintId: number) {
     html,
     attachments
   });
-
-  await db
-    .update(complaints)
-    .set({
-      status: "filed"
-    })
-    .where(and(eq(complaints.id, row.id), eq(complaints.status, row.status)));
 }

@@ -5,8 +5,10 @@ import { and, asc, inArray, eq } from "drizzle-orm";
 export type RankingRow = {
   id: number;
   name: string;
+  slug: string;
   position: "MLA" | "MP";
   party: string | null;
+  photo_url: string | null;
   constituencyName: string | null;
   criminal_cases: number;
   assets_worth: bigint;
@@ -41,8 +43,10 @@ export async function getRankingsByState(stateId: number, limit = 50): Promise<R
       .select({
         id: politicians.id,
         name: politicians.name,
+        slug: politicians.slug,
         position: politicians.position,
         party: politicians.party,
+        photo_url: politicians.photo_url,
         constituency_id: politicians.constituency_id,
         criminal_cases: politicians.criminal_cases,
         assets_worth: politicians.assets_worth,
@@ -98,8 +102,10 @@ export async function getRankingsByState(stateId: number, limit = 50): Promise<R
       return {
         id: row.id,
         name: row.name,
+        slug: row.slug,
         position,
         party: row.party,
+        photo_url: row.photo_url,
         constituencyName,
         criminal_cases: row.criminal_cases,
         assets_worth: row.assets_worth,

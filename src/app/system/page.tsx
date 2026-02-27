@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
 import { db } from "@/db/client";
 import {
   complaints,
@@ -14,7 +16,7 @@ import { isAiComplaintsEnabled, isAiRtiEnabled } from "@/lib/ai/flags";
 
 import { getCurrentUser } from "@/lib/auth/session";
 
-export default async function SystemPage() {
+async function SystemDashboardContent() {
   const user = await getCurrentUser();
 
   if (!user || !user.is_system_admin) {
@@ -29,7 +31,6 @@ export default async function SystemPage() {
   }
 
   const adminUserId = user.id;
-
   const allStatesRows = await db.select().from(states);
 
   const delhi = allStatesRows.find((row) => row.code === "DL") ?? null;
@@ -145,7 +146,28 @@ export default async function SystemPage() {
         aiRtiEnabled={aiRtiEnabled}
         aiComplaintsEnabled={aiComplaintsEnabled}
         adminUserId={adminUserId}
+        totalAiRequests={totalAiRequests}
+        totalComplaintsCreated={totalComplaintsCreated}
+        totalRtisCreated={totalRtisCreated}
+        totalRateLimited={totalRateLimited}
       />
     </div>
+  );
+}
+
+export default function SystemPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
+            <p className="text-sm text-slate-500 font-medium">Loading system dashboard...</p>
+          </div>
+        </div>
+      }
+    >
+      <SystemDashboardContent />
+    </Suspense>
   );
 }

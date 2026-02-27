@@ -4,6 +4,7 @@ import { db } from "@/db/client";
 import { payments, complaints, rti_requests, task_usage } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { fulfillComplaint } from "@/lib/fulfillment/complaint";
+import { fulfillRti } from "@/lib/fulfillment/rti";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,15 +26,25 @@ export async function POST(req: NextRequest) {
       .update(body)
       .digest("hex");
 
-    if (expectedSignature !== signature) {
+    const expectedBuf = Buffer.from(expectedSignature);
+    const receivedBuf = Buffer.from(signature);
+    if (
+      expectedBuf.length !== receivedBuf.length ||
+      !crypto.timingSafeEqual(expectedBuf, receivedBuf)
+    ) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
     const event = JSON.parse(body);
 
     if (event.event === "payment.captured" || event.event === "order.paid") {
-      const paymentEntity = event.payload.payment.entity;
-      const orderId = paymentEntity.order_id;
+      const paymentEntity = event?.payload?.payment?.entity;
+      const orderId = paymentEntity?.order_id;
+      const paymentId = paymentEntity?.id;
+
+      if (!orderId) {
+        return NextResponse.json({ received: true });
+      }
 
       // Find payment by razorpay_order_id
       const [payment] = await db
@@ -43,10 +54,17 @@ export async function POST(req: NextRequest) {
         .limit(1);
 
       if (payment) {
+        if (payment.status === "success") {
+          return NextResponse.json({ received: true });
+        }
+
         // Update payment status
         await db
           .update(payments)
-          .set({ status: "success", razorpay_payment_id: paymentEntity.id })
+          .set({
+            status: "success",
+            razorpay_payment_id: typeof paymentId === "string" ? paymentId : null
+          })
           .where(eq(payments.id, payment.id));
 
         // Fulfillment logic
@@ -59,11 +77,6 @@ export async function POST(req: NextRequest) {
             .limit(1);
 
           if (complaint) {
-            await db
-              .update(complaints)
-              .set({ status: "filed" })
-              .where(eq(complaints.id, complaint.id));
-
             // Trigger fulfillment (email, etc.)
             await fulfillComplaint(complaint.id).catch((err) => {
               console.error("Error fulfilling complaint:", err);
@@ -81,8 +94,10 @@ export async function POST(req: NextRequest) {
             const rtiId = (usage.metadata as { rti_id: number }).rti_id;
             await db
               .update(rti_requests)
-              .set({ status: "paid" })
+              .set({ status: "paid", pdf_url: `/api/rti/${rtiId}/pdf` })
               .where(eq(rti_requests.id, rtiId));
+
+            await fulfillRti(rtiId);
           }
         }
       }

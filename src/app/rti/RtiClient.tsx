@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import jsPDF from "jspdf";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { openRazorpayCheckout } from "@/lib/payments/razorpayClient";
 
 type ApiResponse<T> =
@@ -312,18 +312,108 @@ export function RtiClient({
     }
   }
 
-  function handleDownloadPdf() {
+  async function handleDownloadPdf() {
     if (!rtiText.trim()) {
       setError("Generate an RTI draft before downloading a PDF.");
       return;
     }
 
-    const doc = new jsPDF();
-    doc.setFont("times", "normal");
-    doc.setFontSize(12);
-    const lines = doc.splitTextToSize(rtiText.trim(), 180);
-    doc.text(lines, 15, 20);
-    doc.save("rti-draft.pdf");
+    setError(null);
+
+    const pdfDoc = await PDFDocument.create();
+    const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+
+    const fontSize = 12;
+    const lineHeight = Math.ceil(fontSize * 1.45);
+    const marginX = 50;
+    const marginTop = 60;
+    const marginBottom = 70;
+
+    const baseText = rtiText.trim();
+
+    const wrapText = (text: string, maxWidth: number) => {
+      const lines: string[] = [];
+      const paragraphs = text.split(/\n+/);
+
+      for (const p of paragraphs) {
+        const para = p.trim();
+
+        if (!para) {
+          lines.push("");
+          continue;
+        }
+
+        const words = para.split(/\s+/);
+        let current = "";
+
+        for (const word of words) {
+          const candidate = current ? `${current} ${word}` : word;
+          const w = font.widthOfTextAtSize(candidate, fontSize);
+          if (w <= maxWidth) {
+            current = candidate;
+          } else {
+            if (current) lines.push(current);
+            current = word;
+          }
+        }
+
+        if (current) lines.push(current);
+        lines.push("");
+      }
+
+      while (lines.length > 0 && lines[lines.length - 1] === "") {
+        lines.pop();
+      }
+
+      return lines;
+    };
+
+    const firstPage = pdfDoc.addPage();
+    const { width, height } = firstPage.getSize();
+    const maxWidth = width - marginX * 2;
+
+    const lines = wrapText(baseText, maxWidth);
+
+    let page = firstPage;
+    let y = height - marginTop;
+
+    for (const line of lines) {
+      if (y < marginBottom) {
+        page = pdfDoc.addPage();
+        y = page.getSize().height - marginTop;
+      }
+
+      if (line) {
+        page.drawText(line, {
+          x: marginX,
+          y,
+          size: fontSize,
+          font,
+          color: rgb(0, 0, 0)
+        });
+      }
+
+      y -= lineHeight;
+    }
+
+    for (const p of pdfDoc.getPages()) {
+      p.drawText(
+        "Digitally drafted via Neta.ink | Scan to track this official's civic record.",
+        { x: 50, y: 30, size: 10, color: rgb(0.5, 0.5, 0.5) }
+      );
+    }
+
+    const bytes = await pdfDoc.save();
+    const safeBytes = Uint8Array.from(bytes);
+    const blob = new Blob([safeBytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "rti-draft.pdf";
+    a.click();
+
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   return (

@@ -44,75 +44,128 @@ export default async function VolunteerPage() {
   const isVolunteer = Boolean(currentUser && volunteerForUser.length > 0);
 
   return (
-    <div className="space-y-8">
-      <section className="space-y-4">
-        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50 sm:text-3xl">
-          Civic Leaderboard
-        </h1>
-        <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300 sm:text-base">
-          See the most active NetaInk volunteers driving local change through verified civic
-          tasks.
-        </p>
-        {!isVolunteer && (
-          <div className="rounded-3xl border border-emerald-500/40 bg-emerald-500/10 p-4 sm:p-5">
-            <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-              <div>
-                <h2 className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
-                  Join the Ground Game. Become a NetaInk Volunteer.
-                </h2>
-                <p className="mt-1 text-xs text-emerald-800/90 dark:text-emerald-100/90 sm:text-sm">
-                  Verified citizens can claim civic tasks, support neighbours, and earn points on
-                  the public volunteer leaderboard.
-                </p>
-              </div>
-              <Link
-                href="/volunteer/dashboard"
-                className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-400"
-              >
-                Go to volunteer dashboard
-              </Link>
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-          Top volunteers
-        </h2>
-        {leaderboard.length === 0 ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            As tasks go live and citizens start contributing, top volunteers will appear here.
+    <div className="space-y-12">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden rounded-3xl bg-slate-900 px-6 py-16 text-center shadow-2xl sm:px-16 md:py-24">
+        <div className="relative z-10 mx-auto max-w-3xl space-y-6">
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
+            Neta.ink Volunteer & State Manager Portal
+          </h1>
+          <p className="mx-auto max-w-2xl text-lg text-slate-300">
+            Help us keep democracy transparent. Apply to become a State Manager to verify local news, flag fake reports, and manage politician data for your constituency.
           </p>
-        ) : (
-          <ol className="space-y-3">
-            {leaderboard.map((row, index) => {
-              const name = row.name && row.name.trim().length > 0 ? row.name : "Citizen";
-
-              return (
-                <li
-                  key={row.id}
-                  className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 px-4 py-3 text-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-100">
-                      {index + 1}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-slate-900 dark:text-slate-50">
-                        {name}
-                      </span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {row.contribution_points} points
-                      </span>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        )}
+          <div className="flex justify-center pt-4">
+            <button className="opacity-50 cursor-not-allowed bg-slate-800 text-slate-400 px-8 py-3 rounded-full font-medium border border-slate-700">
+              Apply for State Manager (Coming Soon)
+            </button>
+          </div>
+        </div>
+        
+        {/* Abstract Background Pattern */}
+        <div className="absolute top-0 left-0 -z-0 h-full w-full opacity-20">
+          <div className="absolute right-0 top-0 h-[500px] w-[500px] -translate-y-1/2 translate-x-1/2 rounded-full bg-emerald-500/30 blur-[100px]" />
+          <div className="absolute left-0 bottom-0 h-[500px] w-[500px] translate-y-1/2 -translate-x-1/2 rounded-full bg-blue-500/30 blur-[100px]" />
+        </div>
       </section>
+
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Main Content / Leaderboard */}
+        <div className="lg:col-span-2 space-y-8">
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
+              Civic Leaderboard
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300">
+              See the most active NetaInk volunteers driving local change through verified civic tasks.
+            </p>
+            
+            {!isVolunteer && (
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-50 dark:bg-emerald-900/10 p-6">
+                <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                  <div>
+                    <h3 className="text-lg font-semibold text-emerald-800 dark:text-emerald-300">
+                      Join the Ground Game
+                    </h3>
+                    <p className="mt-1 text-sm text-emerald-700/80 dark:text-emerald-400/80">
+                      Verified citizens can claim civic tasks and earn points.
+                    </p>
+                  </div>
+                  <Link
+                    href="/volunteer/dashboard"
+                    className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors shadow-sm"
+                  >
+                    Go to Dashboard
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+              {leaderboard.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+                  As tasks go live and citizens start contributing, top volunteers will appear here.
+                </div>
+              ) : (
+                <ol className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {leaderboard.map((row, index) => {
+                    const name = row.name && row.name.trim().length > 0 ? row.name : "Citizen";
+                    return (
+                      <li
+                        key={row.id}
+                        className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
+                            index < 3 
+                              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" 
+                              : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                          }`}>
+                            {index + 1}
+                          </div>
+                          <span className="font-medium text-slate-900 dark:text-slate-50">
+                            {name}
+                          </span>
+                        </div>
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-300">
+                          {row.contribution_points} pts
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+            </div>
+          </section>
+        </div>
+
+        {/* Sidebar Info */}
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <h3 className="font-semibold text-slate-900 dark:text-white">Why become a State Manager?</h3>
+            <ul className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-400">
+              <li className="flex gap-2">
+                <span className="text-emerald-500">✓</span>
+                Verify local news before it goes viral
+              </li>
+              <li className="flex gap-2">
+                <span className="text-emerald-500">✓</span>
+                Manage and update politician profiles
+              </li>
+              <li className="flex gap-2">
+                <span className="text-emerald-500">✓</span>
+                Directly impact transparency in your state
+              </li>
+            </ul>
+          </div>
+          
+          <div className="rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-6 text-white shadow-lg">
+            <h3 className="font-bold">NetaInk Community</h3>
+            <p className="mt-2 text-sm text-indigo-100">
+              Join thousands of citizens working together to build a more transparent democracy.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

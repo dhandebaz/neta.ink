@@ -2,6 +2,9 @@
 
 import { FormEvent, useMemo, useState } from "react";
 
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+
 type StateSummary = {
   code: string;
   name: string;
@@ -66,6 +69,7 @@ type FlagsState = {
 };
 
 export function StatesAdminClient({ adminUserId, initialStates }: Props) {
+  const router = useRouter();
   const [states, setStates] = useState<StateSummary[]>(initialStates);
   const [selectedStateCode, setSelectedStateCode] = useState<string | null>(
     initialStates.length > 0 ? initialStates[0].code : null
@@ -313,6 +317,7 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
       setStates((prev) =>
         prev.map((s) => (s.code === code ? json.state! : s))
       );
+      router.refresh();
     } catch {
       setStates((prev) =>
         prev.map((s) =>
@@ -354,6 +359,7 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
 
       await refreshTasks(stateCode);
       setRunTaskState({ loadingTaskType: null, error: null });
+      router.refresh();
     } catch {
       setRunTaskState({
         loadingTaskType: null,
@@ -410,6 +416,7 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
         error: null,
         message: countLabel
       });
+      router.refresh();
     } catch {
       setAgentTaskState({
         loading: false,
@@ -493,11 +500,7 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
         name: "",
         primaryCityLabel: ""
       });
-      setAddStateState({
-        loading: false,
-        error: null,
-        message: "State saved."
-      });
+      router.refresh();
     } catch {
       setAddStateState({
         loading: false,
@@ -678,10 +681,7 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
                         >
                           {agentTaskState.loading ? (
                             <>
-                              <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
+                              <Loader2 className="h-3 w-3 animate-spin" />
                               AI Agent Running...
                             </>
                           ) : (
@@ -695,8 +695,11 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
                              type="button"
                              onClick={() => runTask(state.code, taskType)}
                              disabled={runTaskState.loadingTaskType === taskType}
-                             className="inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                             className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                            >
+                             {runTaskState.loadingTaskType === taskType && (
+                               <Loader2 className="h-3 w-3 animate-spin" />
+                             )}
                              Run {taskType}
                            </button>
                         ))}
@@ -824,10 +827,17 @@ export function StatesAdminClient({ adminUserId, initialStates }: Props) {
             )}
             <button
               type="submit"
-              className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-[11px] font-medium text-slate-50 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1 text-[11px] font-medium text-slate-50 disabled:opacity-60"
               disabled={addStateState.loading}
             >
-              {addStateState.loading ? "Saving..." : "Save state"}
+              {addStateState.loading ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save state"
+              )}
             </button>
           </form>
         </div>

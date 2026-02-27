@@ -4,6 +4,7 @@ import { complaints, payments, rti_requests, users } from "@/db/schema";
 import { and, desc, eq, gte } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth/session";
 import { fulfillComplaint } from "@/lib/fulfillment/complaint";
+import { fulfillRti } from "@/lib/fulfillment/rti";
 import crypto from "crypto";
 
 type VerifyBody = {
@@ -65,6 +66,13 @@ export async function POST(req: NextRequest) {
       { error: "Forbidden" },
       { status: 403 }
     );
+  }
+
+  if (payment.status === "success") {
+    return NextResponse.json({
+      success: true,
+      message: "Payment verified successfully"
+    });
   }
 
   const secret = process.env.RAZORPAY_KEY_SECRET;
@@ -147,8 +155,10 @@ export async function POST(req: NextRequest) {
     if (rti) {
       await db
         .update(rti_requests)
-        .set({ status: "paid" })
+        .set({ status: "paid", pdf_url: `/api/rti/${rti.id}/pdf` })
         .where(eq(rti_requests.id, rti.id));
+
+      await fulfillRti(rti.id);
     }
   } else if (taskType === "developer_api_pro") {
     const [user] = await db

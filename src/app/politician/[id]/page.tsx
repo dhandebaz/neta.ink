@@ -30,18 +30,14 @@ export async function generateMetadata(
   _parent: ResolvingMetadata
 ): Promise<Metadata> {
   const resolvedParams = await params;
-  const id = Number(resolvedParams.id);
-
-  if (Number.isNaN(id)) {
-    return {
-      title: "Not Found"
-    };
-  }
+  const slugOrId = resolvedParams.id;
+  const parsedId = Number(slugOrId);
+  const hasNumericId = Number.isFinite(parsedId) && parsedId > 0;
 
   const rows = await db
     .select()
     .from(politicians)
-    .where(eq(politicians.id, id))
+    .where(hasNumericId ? eq(politicians.id, parsedId) : eq(politicians.slug, slugOrId))
     .limit(1);
 
   const politician = rows[0];
@@ -78,18 +74,9 @@ export async function generateMetadata(
 
 export default async function PoliticianPage({ params }: PageProps) {
   const resolvedParams = await params;
-  const id = Number(resolvedParams.id);
-
-  if (!Number.isFinite(id) || id <= 0) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="w-full max-w-xl space-y-2 text-center">
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">Politician</h1>
-          <p className="text-sm text-red-400">Invalid politician id.</p>
-        </div>
-      </div>
-    );
-  }
+  const slugOrId = resolvedParams.id;
+  const parsedId = Number(slugOrId);
+  const hasNumericId = Number.isFinite(parsedId) && parsedId > 0;
 
   let politician: (typeof politicians.$inferSelect) | null = null;
   let stateRow: (typeof states.$inferSelect) | null = null;
@@ -107,7 +94,7 @@ export default async function PoliticianPage({ params }: PageProps) {
       (await db
         .select()
         .from(politicians)
-        .where(eq(politicians.id, id))
+        .where(hasNumericId ? eq(politicians.id, parsedId) : eq(politicians.slug, slugOrId))
         .limit(1)) ?? [];
 
     politician = rows[0] ?? null;
@@ -258,7 +245,7 @@ export default async function PoliticianPage({ params }: PageProps) {
             <ShareButtonClient
               title={politician.name}
               text={`Check out ${politician.name} on NetaInk. Rating: ${ratingNumber}/5`}
-              url={`https://neta.ink/politician/${politician.id}`}
+              url={`https://neta.ink/politician/${politician.slug || politician.id}`}
             />
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-300">

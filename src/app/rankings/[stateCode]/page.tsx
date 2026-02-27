@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -31,12 +32,6 @@ export async function generateMetadata({ params }: { params: Promise<{ stateCode
   };
 }
 
-function formatCrores(assets: bigint): string {
-  const crores = Number(assets) / 10_000_000;
-  if (!Number.isFinite(crores)) return "0";
-  return crores.toFixed(2);
-}
-
 export default async function StateRankingsPage({ params }: { params: Promise<{ stateCode: string }> }) {
   const resolvedParams = await params;
   const code = resolvedParams.stateCode.toUpperCase();
@@ -47,146 +42,161 @@ export default async function StateRankingsPage({ params }: { params: Promise<{ 
   const rows = await getRankingsByState(stateRow.id, 100);
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-5xl space-y-6">
-        <header className="space-y-3 text-center">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">{stateRow.name} Politicians – Worst to Best</h1>
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Experimental ranking of {stateRow.name} MPs and MLAs by cases, assets and citizen votes.
+    <main className="min-h-screen">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 px-6 py-10 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-950/60 sm:px-10">
+        <div className="pointer-events-none absolute inset-0 opacity-40">
+          <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-emerald-500/20 blur-3xl" />
+          <div className="absolute -right-24 -bottom-24 h-80 w-80 rounded-full bg-indigo-500/20 blur-3xl" />
+        </div>
+
+        <header className="relative z-10 flex flex-col items-center gap-4 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-200">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Rankings · {stateRow.name}
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
+            Civic Markets Leaderboard
+          </h1>
+          <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+            A premium, stock-style view of MPs and MLAs ranked by a composite score using cases, assets, and citizen votes.
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Lower scores are worse. Use this as a directional civic signal, not a legal verdict.
-          </p>
-          <p className="text-xs">
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <span className="rounded-full border border-slate-200 bg-white/70 px-3 py-1 dark:border-slate-800 dark:bg-slate-950/70">
+              {rows.length} listings
+            </span>
+            <span className="rounded-full border border-slate-200 bg-white/70 px-3 py-1 dark:border-slate-800 dark:bg-slate-950/70">
+              Lower score = worse record
+            </span>
             <Link
               href={`/politicians/${code.toLowerCase()}`}
-              className="inline-flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900/80 px-3 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-100 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-200"
+              className="rounded-full border border-slate-200 bg-white/70 px-3 py-1 font-medium text-slate-700 hover:border-amber-400 hover:text-amber-600 dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-200 dark:hover:text-amber-200"
             >
-              View as raw list
+              View raw list
             </Link>
-          </p>
+          </div>
         </header>
 
         {rows.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 p-4 text-center text-sm text-slate-600 dark:text-slate-300">
-            No {stateRow.name} politicians found in the database yet. Once {stateRow.name} data is seeded, rankings
-            will appear here automatically.
+          <div className="relative z-10 mt-10 rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-950/80 dark:text-slate-300">
+            No {stateRow.name} politicians found in the database yet.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80">
-            <div className="border-b border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/80 px-4 py-3 text-left text-xs text-slate-600 dark:text-slate-300">
-              <span className="font-semibold text-slate-900 dark:text-slate-100">Rankings snapshot</span>
-              <span className="ml-2 text-slate-500">
-                {rows.length} politicians · lower score = worse overall record
-              </span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-xs sm:text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-medium">Rank</th>
-                    <th className="px-3 py-2 text-left font-medium">Name</th>
-                    <th className="px-3 py-2 text-left font-medium">Pos</th>
-                    <th className="px-3 py-2 text-left font-medium">Constituency</th>
-                    <th className="px-3 py-2 text-left font-medium">Party</th>
-                    <th className="px-3 py-2 text-left font-medium">Cases</th>
-                    <th className="px-3 py-2 text-left font-medium">Assets (₹ cr)</th>
-                    <th className="px-3 py-2 text-left font-medium">Votes</th>
-                    <th className="px-3 py-2 text-left font-medium">Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row, index) => {
-                    const rank = index + 1;
-                    const isTop = rank <= 3;
-                    const isBottom = rank > rows.length - 3;
+          <div className="relative z-10 mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {rows.map((politician, index) => {
+              const cases = politician.criminal_cases ?? 0;
 
-                    const rankBadgeClass =
-                      rank === 1
-                        ? "bg-amber-400 text-slate-950"
-                        : rank === 2
-                        ? "bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-amber-200"
-                        : rank === 3
-                        ? "bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-100"
-                        : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300";
+              const assets_worth_in_rupees = Number(politician.assets_worth ?? BigInt(0));
+              const formattedAssets = new Intl.NumberFormat("en-IN", {
+                style: "currency",
+                currency: "INR",
+                maximumSignificantDigits: 3
+              }).format(assets_worth_in_rupees);
 
-                    const positionBadgeClass =
-                      row.position === "MP"
-                        ? "bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-200 border-indigo-500/40"
-                        : "bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-200 border-emerald-500/40";
+              const severityBadge =
+                cases === 0
+                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                  : cases > 0 && cases <= 5
+                  ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                  : "bg-rose-500/10 text-rose-600 border-rose-500/20";
 
-                    const rowBgClass = isTop
-                      ? "bg-slate-50 dark:bg-slate-900/80"
-                      : isBottom
-                      ? "bg-red-50 dark:bg-red-950/40"
-                      : index % 2 === 0
-                      ? "bg-white dark:bg-slate-950"
-                      : "bg-slate-50 dark:bg-slate-950/80";
+              const cardGlow =
+                cases > 5
+                  ? "border-rose-500/50 shadow-[0_0_15px_rgba(244,63,94,0.1)]"
+                  : "border-slate-200/80 dark:border-slate-800";
 
-                    const totalVotes = row.votes_up + row.votes_down;
+              const profileHref = `/politician/${politician.slug || politician.id}`;
 
-                    return (
-                      <tr key={row.id} className={rowBgClass}>
-                        <td className="px-3 py-2 align-top">
-                          <span
-                            className={`inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${rankBadgeClass}`}
-                          >
-                            {rank}
+              const totalVotes = (politician.votes_up ?? 0) + (politician.votes_down ?? 0);
+              const volumeLabel = totalVotes === 0 ? "No votes yet" : `${totalVotes} votes`;
+
+              return (
+                <a
+                  key={politician.id}
+                  href={profileHref}
+                  className={`group relative overflow-hidden rounded-2xl border bg-white p-5 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg dark:bg-slate-950/70 dark:hover:border-slate-700 ${cardGlow}`}
+                >
+                  <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
+                  </div>
+
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="relative h-12 w-12 flex-shrink-0">
+                        <Image
+                          src={politician.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(politician.name)}&background=random`}
+                          alt={politician.name}
+                          fill
+                          className="rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-800"
+                          sizes="48px"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                            #{index + 1}
                           </span>
-                        </td>
-                        <td className="px-3 py-2 align-top">
-                          <a
-                            href={`/politician/${row.id}`}
-                            className="text-sm font-medium text-amber-600 dark:text-amber-200 hover:underline"
-                          >
-                            {row.name}
-                          </a>
-                          <div className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
-                            {row.constituencyName ?? "Constituency not recorded"}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 align-top">
-                          <span
-                            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${positionBadgeClass}`}
-                          >
-                            {row.position}
+                          <span className="truncate text-base font-semibold text-slate-900 dark:text-white">
+                            {politician.name}
                           </span>
-                        </td>
-                        <td className="px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-200">
-                          {row.constituencyName ?? "—"}
-                        </td>
-                        <td className="px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-200">
-                          {row.party ?? "—"}
-                        </td>
-                        <td className="px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-200">
-                          {row.criminal_cases}
-                        </td>
-                        <td className="px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-200">
-                          {formatCrores(row.assets_worth)}
-                        </td>
-                        <td className="px-3 py-2 align-top text-xs text-slate-600 dark:text-slate-200">
-                          <span className="font-medium text-emerald-600 dark:text-emerald-300">
-                            {row.votes_up}
-                          </span>{" "}
-                          <span className="text-slate-400 dark:text-slate-500">/</span>{" "}
-                          <span className="font-medium text-red-600 dark:text-red-300">
-                            {row.votes_down}
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                          <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
+                            {politician.position}
                           </span>
-                          <div className="text-[11px] text-slate-500">
-                            {totalVotes === 0 ? "No votes yet" : `${totalVotes} votes`}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 align-top">
-                          <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-slate-700 dark:text-slate-100">
-                            {row.score.toFixed(2)}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          <span className="truncate">{politician.party ?? "—"}</span>
+                        </div>
+                        <div className="mt-1 truncate max-w-[150px] text-xs text-slate-500 dark:text-slate-400">
+                          {politician.constituencyName ?? "Constituency not recorded"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${severityBadge}`}>
+                      {cases} cases
+                    </span>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Assets
+                      </div>
+                      <div className="mt-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-50">
+                        {formattedAssets}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Score
+                      </div>
+                      <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-50">
+                        {politician.score.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-end justify-between gap-3">
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      <span className="font-medium text-emerald-600 dark:text-emerald-300">
+                        {politician.votes_up ?? 0}
+                      </span>{" "}
+                      <span className="text-slate-400 dark:text-slate-500">/</span>{" "}
+                      <span className="font-medium text-rose-600 dark:text-rose-300">
+                        {politician.votes_down ?? 0}
+                      </span>
+                      <div className="mt-0.5 text-[11px]">{volumeLabel}</div>
+                    </div>
+
+                    <div className="text-right text-[11px] text-slate-500 dark:text-slate-400">
+                      <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2 py-0.5 font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+                        Open profile
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         )}
       </div>

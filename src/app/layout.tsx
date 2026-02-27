@@ -9,6 +9,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import LogoToggle from "@/components/LogoToggle";
 import { ChatbotWrapper } from "@/components/ChatbotWrapper";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import GlobalSearchClient from "@/components/GlobalSearchClient";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -78,6 +80,9 @@ export default function RootLayout(props: { children: React.ReactNode }) {
                     Civic Store
                   </Link>
                 </nav>
+                <div className="hidden md:block">
+                  <GlobalSearchClient />
+                </div>
               </div>
               <div className="flex items-center justify-end">
                 <CurrentUserProvider />
@@ -112,6 +117,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
           <MobileBottomNav />
           <PwaRegister />
           <DevOverlay />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
