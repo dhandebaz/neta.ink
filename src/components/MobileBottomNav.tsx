@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Scale, HeartHandshake, User } from "lucide-react";
+import { Home, Scale, HeartHandshake, User, BarChart3 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -9,6 +9,7 @@ export function MobileBottomNav() {
 
   const links = [
     { href: "/", icon: Home, label: "Home" },
+    { href: "/tracker", icon: BarChart3, label: "Tracker" },
     { href: "/compare", icon: Scale, label: "Compare" },
     { href: "/volunteer", icon: HeartHandshake, label: "Act" },
     { href: "/dashboard", icon: User, label: "Profile" },
@@ -28,8 +29,8 @@ export function MobileBottomNav() {
               isActive ? "text-amber-500" : "text-slate-600 dark:text-slate-400"
             }`}
           >
-            <Icon className="h-6 w-6" />
-            <span className="text-xs mt-1">{link.label}</span>
+            <Icon className="h-5 w-5" />
+            <span className="text-[10px] mt-0.5">{link.label}</span>
           </Link>
         );
       })}
