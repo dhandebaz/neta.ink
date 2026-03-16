@@ -74,6 +74,12 @@ export default function RootLayout(props: { children: React.ReactNode }) {
                     Politicians
                   </Link>
                   <Link
+                    href="/tracker"
+                    className="rounded-full px-3 py-1 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-50 transition-colors"
+                  >
+                    Tracker
+                  </Link>
+                  <Link
                     href="/tools"
                     className="rounded-full px-3 py-1 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-50 transition-colors"
                   >
