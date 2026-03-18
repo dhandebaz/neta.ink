@@ -59,7 +59,7 @@ export async function runAgenticPoliticianIngestion(
   const prompt = 
     `TASK: Extract sitting MLAs for the ${state.name} Legislative Assembly in India from the provided HTML.\n` + 
     `INSTRUCTIONS:\n` + 
-    `1. Extract exactly 20-30 current sitting MLAs to start.\n` + 
+    `1. Extract all current sitting MLAs you can find.\n` + 
     `2. Find their criminal cases and assets.\n` + 
     `3. CRITICAL: Extract their photo URL from the <img> tag next to their name. If the URL is relative (e.g., 'images/candidate/123.jpg'), prepend 'https://www.myneta.info/' or the base URL to it.\n` + 
     `4. Output ONLY a valid, strict JSON array. Do not include markdown fences.\n` + 
@@ -194,4 +194,3 @@ export async function runAgenticPoliticianIngestion(
     count: processedCount
   };
 }
-

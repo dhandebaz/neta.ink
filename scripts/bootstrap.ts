@@ -3,7 +3,6 @@ import { states, users } from "../src/db/schema";
 import { ensureDelhiState } from "../src/lib/states";
 import { eq } from "drizzle-orm";
 import { runDelhiIngestion } from "../src/lib/ingest/delhi";
-import { seedDelhiCore } from "../src/lib/seed/delhiCore";
 
 async function ensureAdminUser() {
   const phone = process.env.DEV_ADMIN_PHONE;
@@ -70,7 +69,6 @@ async function main() {
   const adminUser = await ensureAdminUser();
 
   await runDelhiIngestion();
-  await seedDelhiCore();
 
   await db
     .update(states)

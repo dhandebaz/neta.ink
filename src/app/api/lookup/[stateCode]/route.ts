@@ -3,6 +3,7 @@ import { db } from "@/db/client";
 import { constituencies, politicians, states, usage_events } from "@/db/schema";
 import { and, asc, eq, ilike } from "drizzle-orm";
 import { getIpKey, rateLimit } from "@/lib/rateLimit";
+import { getDelhiRepsByConstituencySearch } from "@/lib/lookup/delhi";
 
 const LOOKUP_TASK_TYPE = "lookup";
 
@@ -72,6 +73,12 @@ export async function POST(
   };
 
   try {
+    if (stateCode === "DL") {
+      const delhiResult = await getDelhiRepsByConstituencySearch(query);
+      result.constituencyName = delhiResult.constituencyName;
+      result.mla = delhiResult.mla;
+      result.mp = delhiResult.mp;
+    } else {
     const [stateRow] = await db
       .select()
       .from(states)
@@ -111,22 +118,23 @@ export async function POST(
         
         result.mla = mlaRow || null;
 
-        // Placeholder logic for MP matching original implementation
-        // Just grabs the first MP found for the state
-        const [mpRow] = await db
-          .select()
-          .from(politicians)
-          .where(
-            and(
-              eq(politicians.state_id, stateRow.id),
-              eq(politicians.position, "MP")
+        if (ac.parent_id) {
+          const [mpRow] = await db
+            .select()
+            .from(politicians)
+            .where(
+              and(
+                eq(politicians.state_id, stateRow.id),
+                eq(politicians.position, "MP"),
+                eq(politicians.constituency_id, ac.parent_id)
+              )
             )
-          )
-          .orderBy(asc(politicians.id))
-          .limit(1);
-        
-        result.mp = mpRow || null;
+            .limit(1);
+
+          result.mp = mpRow || null;
+        }
       }
+    }
     }
   } catch (error) {
     console.error(`Error in lookup for ${stateCode}:`, error);

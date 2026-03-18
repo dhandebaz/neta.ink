@@ -23,24 +23,6 @@ export function AdminActionsClient({ adminUserId }: Props) {
     error: null
   });
 
-  const [seedState, setSeedState] = useState<ActionState>({
-    loading: false,
-    message: null,
-    error: null,
-  });
-
-  const [maharashtraSeedState, setMaharashtraSeedState] = useState<ActionState>({
-    loading: false,
-    message: null,
-    error: null,
-  });
-
-  const [panIndiaSeedState, setPanIndiaSeedState] = useState<ActionState>({
-    loading: false,
-    message: null,
-    error: null,
-  });
-
   const [aiIngestState, setAiIngestState] = useState<ActionState>({
     loading: false,
     message: null,
@@ -91,40 +73,6 @@ export function AdminActionsClient({ adminUserId }: Props) {
     }
   }
 
-  async function populateAllStates() {
-    setPanIndiaSeedState({ loading: true, message: null, error: null });
-    try {
-      const res = await fetch("/api/admin/states/seed-all", {
-        method: "POST",
-        headers: {
-          "x-admin-user-id": String(adminUserId),
-        },
-      });
-
-      if (!res.ok) {
-        setPanIndiaSeedState({
-          loading: false,
-          message: null,
-          error: `Request failed (${res.status})`,
-        });
-        return;
-      }
-
-      router.refresh();
-      setPanIndiaSeedState({
-        loading: false,
-        message: "Seed initiated. Data will appear shortly.",
-        error: null,
-      });
-    } catch (error) {
-      setPanIndiaSeedState({
-        loading: false,
-        message: null,
-        error: "Network error",
-      });
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div className="space-y-2 border-b pb-4">
@@ -153,86 +101,6 @@ export function AdminActionsClient({ adminUserId }: Props) {
             )}
             {ingestState.error && (
               <p className="text-xs text-red-600">{ingestState.error}</p>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <button
-              type="button"
-              onClick={() =>
-                void callEndpoint("/api/admin/seed/delhi-core", setSeedState)
-              }
-              className="px-4 py-2 rounded bg-emerald-600 text-white text-sm disabled:opacity-60"
-              disabled={seedState.loading}
-            >
-              {seedState.loading ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Seeding...</span>
-                </div>
-              ) : (
-                "Run Delhi Core Seed"
-              )}
-            </button>
-            {seedState.message && (
-              <p className="text-xs text-emerald-700">{seedState.message}</p>
-            )}
-            {seedState.error && (
-              <p className="text-xs text-red-600">{seedState.error}</p>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <button
-              type="button"
-              onClick={() =>
-                void callEndpoint(
-                  "/api/admin/seed/maharashtra-core",
-                  setMaharashtraSeedState
-                )
-              }
-              className="px-4 py-2 rounded bg-orange-600 text-white text-sm disabled:opacity-60 flex items-center gap-2"
-              disabled={maharashtraSeedState.loading}
-            >
-              {maharashtraSeedState.loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Seeding...</span>
-                </>
-              ) : (
-                "Run Maharashtra Core Seed"
-              )}
-            </button>
-            {maharashtraSeedState.message && (
-              <p className="text-xs text-emerald-700">
-                {maharashtraSeedState.message}
-              </p>
-            )}
-            {maharashtraSeedState.error && (
-              <p className="text-xs text-red-600">
-                {maharashtraSeedState.error}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <button
-              type="button"
-              onClick={() => void populateAllStates()}
-              className="px-4 py-2 rounded bg-indigo-600 text-white text-sm disabled:opacity-60"
-              disabled={panIndiaSeedState.loading}
-            >
-              {panIndiaSeedState.loading ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Seeding...</span>
-                </div>
-              ) : (
-                "Run Pan-India Seed"
-              )}
-            </button>
-            {panIndiaSeedState.error && (
-              <p className="text-xs text-red-600">{panIndiaSeedState.error}</p>
             )}
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { states, politicians, constituencies } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth/session";
 import * as cheerio from "cheerio";
 
@@ -110,9 +110,6 @@ export async function POST(req: NextRequest) {
     const html = await response.text();
     const $ = cheerio.load(html);
 
-    // Delete old politicians to prevent duplicates and keep data fresh
-    await db.delete(politicians).where(eq(politicians.state_id, state.id));
-
     // STRICT FIX: Find the correct table more robustly
     const targetTable = $('table').filter((i, el) => {
       const text = $(el).text();
@@ -123,98 +120,113 @@ export async function POST(req: NextRequest) {
       throw new Error("Could not find candidate table in MyNeta page");
     }
 
-    const extractedData: any[] = [];
-    const rows = targetTable.find('tr').slice(1); // Skip header row
+    const normalizeText = (value: string) => value.replace(/\s+/g, " ").trim();
 
-    rows.each((index, row) => {
-      const cells = $(row).find("td");
-      if (cells.length < 4) return;
+    const parseRupeesNumber = (value: string) => {
+      const cleaned = value.split("~")[0].replace(/[^\d]/g, "");
+      if (!cleaned) return BigInt(0);
+      const parsed = Number.parseInt(cleaned, 10);
+      if (!Number.isFinite(parsed)) return BigInt(0);
+      return BigInt(Math.max(0, parsed));
+    };
 
-      const nameCell = $(cells[1]);
-      const constituencyCell = $(cells[2]);
-      const partyCell = $(cells[3]);
-      const criminalCell = $(cells[4]);
-      const assetsCell = $(cells[6]);
+    const safeParseInt = (value: string) => {
+      const parsed = Number.parseInt(value.replace(/[^\d-]/g, ""), 10);
+      if (!Number.isFinite(parsed)) return 0;
+      return Math.max(0, parsed);
+    };
 
-      let name = nameCell.text().trim();
-      name = name.replace(/\(Winner\)/i, "").trim();
+    const toAbsoluteUrl = (base: string, href: string) => {
+      try {
+        return new URL(href, base).toString();
+      } catch {
+        return href;
+      }
+    };
 
-      let constituencyRaw = constituencyCell.text().trim();
-      // Extract Serial Number if present (e.g., "1 - Narela") or handle generic format
-      let constituency = constituencyRaw;
-      let serialNumber = "";
-      
-      // Attempt to extract serial number from start of string
-      const snMatch = constituencyRaw.match(/^(\d+)\s*[-.]\s*(.+)/);
+    const headerCells = targetTable.find("tr").first().find("th, td").toArray();
+    const headers = headerCells.map((cell) => normalizeText($(cell).text()));
+
+    const candidateIdx = headers.findIndex((h) => /candidate/i.test(h));
+    const constituencyIdx = headers.findIndex((h) => /constituency/i.test(h));
+    const partyIdx = headers.findIndex((h) => /^party$/i.test(h) || /party/i.test(h));
+    const criminalIdx = headers.findIndex((h) => /criminal/i.test(h));
+    const assetsIdx = headers.findIndex((h) => /total assets/i.test(h));
+
+    if ([candidateIdx, constituencyIdx, partyIdx, assetsIdx].some((idx) => idx < 0)) {
+      throw new Error("Unexpected MyNeta table format");
+    }
+
+    const extractedData: Array<{
+      name: string;
+      constituencyName: string;
+      constituencySerial: string | null;
+      party: string;
+      criminalCases: number;
+      assetsWorth: bigint;
+      photoUrl: string;
+      mynetaUrl: string | null;
+    }> = [];
+
+    const rows = targetTable.find("tr").slice(1).toArray();
+
+    for (const row of rows) {
+      const cells = $(row).find("td").toArray();
+      if (cells.length === 0) continue;
+
+      const candidateCell = cells[candidateIdx] ? $(cells[candidateIdx]) : null;
+      const constituencyCell = cells[constituencyIdx] ? $(cells[constituencyIdx]) : null;
+      const partyCell = cells[partyIdx] ? $(cells[partyIdx]) : null;
+      const criminalCell = criminalIdx >= 0 && cells[criminalIdx] ? $(cells[criminalIdx]) : null;
+      const assetsCell = cells[assetsIdx] ? $(cells[assetsIdx]) : null;
+
+      if (!candidateCell || !constituencyCell || !partyCell || !assetsCell) continue;
+
+      let name = normalizeText(candidateCell.text());
+      name = name.replace(/\(Winner\)/gi, "").trim();
+
+      const candidateHref = candidateCell.find("a").attr("href");
+      const mynetaUrl = candidateHref ? toAbsoluteUrl(targetUrl, candidateHref) : null;
+
+      const constituencyRaw = normalizeText(constituencyCell.text());
+      let constituencyName = constituencyRaw;
+      let constituencySerial: string | null = null;
+      const snMatch = constituencyRaw.match(/^(\d+)\s*[-.]\s*(.+)$/);
       if (snMatch) {
-        serialNumber = snMatch[1];
-        constituency = snMatch[2].trim();
-      }
-      
-      // Format as "ConstituencyName (Sl. No. X)" if serial number found
-      if (serialNumber) {
-        constituency = `${constituency} (Sl. No. ${serialNumber})`;
+        constituencySerial = snMatch[1];
+        constituencyName = normalizeText(snMatch[2]);
       }
 
-      const party = partyCell.text().trim();
-      
-      const criminalText = criminalCell.text().trim();
-      const criminalCases = parseInt(criminalText) || 0;
+      const party = normalizeText(partyCell.text());
+      const criminalCases = criminalCell ? safeParseInt(criminalCell.text()) : 0;
+      const assetsWorth = parseRupeesNumber(assetsCell.text());
 
-      const assetsText = assetsCell.text().trim();
-      let assets = 0;
-      // STRICT FIX: Safely parse numbers, default to 0
-      const cleanAssets = assetsText.split("~")[0].replace(/[^\d]/g, "");
-      if (cleanAssets) {
-        const parsed = parseInt(cleanAssets);
-        assets = isNaN(parsed) ? 0 : parsed;
-      }
+      const imgSrc = $(row).find("img").first().attr("src");
+      const photoUrl = imgSrc
+        ? toAbsoluteUrl(targetUrl, imgSrc)
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=256`;
 
-      let photoUrl = "";
-      const img = $(row).find("img");
-      if (img.length > 0) {
-        const src = img.attr("src");
-        if (src) {
-           if (src.startsWith("http")) {
-             photoUrl = src;
-           } else {
-             const baseUrl = new URL(targetUrl).origin;
-             if (src.startsWith("/")) {
-                photoUrl = `${baseUrl}${src}`;
-             } else {
-                // MyNeta often uses relative paths like "images/candidate/..."
-                // We should append to the directory of targetUrl if it's not root relative
-                // But targetUrl ends in slash usually.
-                // Let's safe bet on base + src if it looks like path
-                // Actually MyNeta structure is simple.
-                photoUrl = `${baseUrl}/${src.replace(/^\//, "")}`;
-             }
-           }
-        }
-      }
+      if (!name || !constituencyName || !party) continue;
 
-      if (!photoUrl) {
-        photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
-      }
-
-      if (name && constituency && party) {
-        extractedData.push({
-          name,
-          constituency,
-          party,
-          criminalCases,
-          assets,
-          photoUrl
-        });
-      }
-    });
+      extractedData.push({
+        name,
+        constituencyName,
+        constituencySerial,
+        party,
+        criminalCases,
+        assetsWorth,
+        photoUrl,
+        mynetaUrl
+      });
+    }
 
     if (extractedData.length === 0) {
       throw new Error("No politicians extracted from table");
     }
 
-    // Delete old politicians to prevent duplicates and keep data fresh 
-    await db.delete(politicians).where(eq(politicians.state_id, state.id));
+    await db
+      .delete(politicians)
+      .where(and(eq(politicians.state_id, state.id), eq(politicians.position, "MLA")));
 
     // Process extracted data
     for (const data of extractedData) {
@@ -229,7 +241,8 @@ export async function POST(req: NextRequest) {
         .where(
           and(
             eq(constituencies.state_id, state.id),
-            eq(constituencies.name, data.constituency)
+            eq(constituencies.type, "vidhan_sabha"),
+            eq(constituencies.name, data.constituencyName)
           )
         )
         .limit(1);
@@ -242,8 +255,9 @@ export async function POST(req: NextRequest) {
           .insert(constituencies)
           .values({
             state_id: state.id,
-            name: data.constituency,
-            type: "Assembly", // Default
+            name: data.constituencyName,
+            type: "vidhan_sabha",
+            external_code: data.constituencySerial,
             district: null,
           })
           .returning({ id: constituencies.id });
@@ -252,9 +266,9 @@ export async function POST(req: NextRequest) {
 
       // 2. Upsert Politician
       // Generate slug
-      const slug = `${stateCode.toLowerCase()}-${data.name
+      const slug = `mla-${stateCode.toLowerCase()}-${data.name
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")}-${data.constituency
+        .replace(/[^a-z0-9]+/g, "-")}-${data.constituencyName
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")}`.replace(/-+/g, "-").replace(/^-|-$/g, "");
 
@@ -266,8 +280,9 @@ export async function POST(req: NextRequest) {
         position: "MLA",
         slug: slug,
         criminal_cases: data.criminalCases,
-        assets_worth: data.assets, // Drizzle handles number -> bigint conversion for inserts usually
+        assets_worth: data.assetsWorth,
         photo_url: data.photoUrl,
+        myneta_url: data.mynetaUrl,
         updated_at: new Date(),
       };
 
